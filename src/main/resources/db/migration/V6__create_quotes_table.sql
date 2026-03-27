@@ -9,5 +9,7 @@ CREATE TABLE quotes (
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK ( status IN ('PENDING', 'REVIEWED', 'ACCEPTED', 'DECLINED')),
     created_at TIMESTAMP DEFAULT now(),
     reviewed_at TIMESTAMP,
+    accepted_at TIMESTAMP,
+    declined_at TIMESTAMP,
     expires_at TIMESTAMP
 );

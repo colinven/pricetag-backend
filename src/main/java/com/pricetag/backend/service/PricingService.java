@@ -1,6 +1,6 @@
 package com.pricetag.backend.service;
 
-import com.pricetag.backend.dto.PropertyData;
+import com.pricetag.backend.dto.response.PropertyData;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -10,8 +10,10 @@ import java.util.Map;
 @Service
 public class PricingService {
 
+    //TODO change all double values to BigDecimal in this class, update arithmetic syntax accordingly
+
     @Value("${pricing.baseSqftPrice}")
-    private double baseSqftPrice;
+    private double baseSqftPrice; //
     @Value("${pricing.storyMultiplier}")
     private double storyMultiplier;
     @Value("${pricing.minimumCharge}")
@@ -48,8 +50,8 @@ public class PricingService {
         //calculate age multiplier
         double ageMultiplier = 1.05;
         if (yearsSinceBuilt < 5) ageMultiplier = 1.0;
-        if (yearsSinceBuilt < 10) ageMultiplier = 1.02;
-        if (yearsSinceBuilt < 20) ageMultiplier = 1.035;
+        else if (yearsSinceBuilt < 10) ageMultiplier = 1.02;
+        else if (yearsSinceBuilt < 20) ageMultiplier = 1.035;
 
         Map<String, Double> washIntervalMultipliers = Map.of(
                 "Never / First time", 1.05,

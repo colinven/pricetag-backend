@@ -1,7 +1,12 @@
 package com.pricetag.backend.service;
 
 import com.pricetag.backend.dto.*;
+import com.pricetag.backend.dto.request.AmendedQuoteRequest;
+import com.pricetag.backend.dto.request.QuoteRequest;
+import com.pricetag.backend.dto.response.AmendedPriceResponse;
+import com.pricetag.backend.dto.response.QuoteResponse;
 import com.pricetag.backend.process.LookupProcess;
+import com.pricetag.backend.process.LookupResult;
 import com.pricetag.backend.util.AddressFormatter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,8 +1,7 @@
 package com.pricetag.backend.process;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pricetag.backend.dto.LookupResult;
-import com.pricetag.backend.dto.PropertyData;
+import com.pricetag.backend.dto.response.PropertyData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
