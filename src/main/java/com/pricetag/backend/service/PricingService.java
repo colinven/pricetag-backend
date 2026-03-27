@@ -10,8 +10,6 @@ import java.util.Map;
 @Service
 public class PricingService {
 
-    //TODO change all double values to BigDecimal in this class, update arithmetic syntax accordingly
-
     @Value("${pricing.baseSqftPrice}")
     private double baseSqftPrice; //
     @Value("${pricing.storyMultiplier}")

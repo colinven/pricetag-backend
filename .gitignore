@@ -33,3 +33,4 @@ build/
 .vscode/
 ./scripts/venv/
 .env
+src/main/java/com/pricetag/backend/controller/TestController.java
