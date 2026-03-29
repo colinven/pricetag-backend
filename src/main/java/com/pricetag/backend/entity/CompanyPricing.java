@@ -27,23 +27,23 @@ public class CompanyPricing {
     @JoinColumn(name = "company_id", nullable = false, unique = true)
     private Company company;
 
-    @Column(name = "base_sqft_price")
+    @Column(name = "base_sqft_price", nullable = false)
     private Double baseSqftPrice;
 
-    @Column(name = "story_multiplier")
+    @Column(name = "story_multiplier", nullable = false)
     private Double storyMultiplier;
 
-    @Column(name = "minimum_price")
+    @Column(name = "minimum_price", nullable = false)
     private Integer minimumPrice;
 
-    @Column(name = "price_range_buffer")
+    @Column(name = "price_range_buffer", nullable = false)
     private Integer priceRangeBuffer;
 
     @Column(name = "quote_expiry_days", nullable = false)
     private int quoteExpiryDays;
 
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
