@@ -8,8 +8,8 @@ import lombok.Builder;
 
 @Builder
 public record PricingConfigurationRequest(
-        @NotNull @DecimalMin("0.1") Double baseSqftPrice,
-        @NotNull @DecimalMin("0.1") Double storyMultiplier,
+        @NotNull @DecimalMin("0.01") Double baseSqftPrice,
+        @NotNull @DecimalMin("0.01") Double storyMultiplier,
         @NotNull @Min(1) Integer minimumPrice,
         @NotNull @Min(1) Integer priceRangeBuffer,
         @NotNull @Min(1) @Max(365) Integer quoteExpiryDays

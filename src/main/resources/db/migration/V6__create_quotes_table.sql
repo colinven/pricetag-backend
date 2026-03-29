@@ -8,6 +8,7 @@ CREATE TABLE quotes (
     final_price INT,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK ( status IN ('PENDING', 'REVIEWED', 'ACCEPTED', 'DECLINED')),
     created_at TIMESTAMP DEFAULT now(),
+    viewed_at TIMESTAMP,
     reviewed_at TIMESTAMP,
     accepted_at TIMESTAMP,
     declined_at TIMESTAMP,

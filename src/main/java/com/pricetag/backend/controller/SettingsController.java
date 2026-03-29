@@ -5,7 +5,6 @@ import com.pricetag.backend.dto.request.ServiceAreaConfigurationRequest;
 import com.pricetag.backend.dto.response.PricingConfigurationResponse;
 import com.pricetag.backend.dto.response.ServiceAreaConfigurationResponse;
 import com.pricetag.backend.dto.response.SettingsResponse;
-import com.pricetag.backend.security.JwtService;
 import com.pricetag.backend.service.SettingsService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
