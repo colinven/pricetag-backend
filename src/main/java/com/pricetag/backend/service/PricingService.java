@@ -1,6 +1,7 @@
 package com.pricetag.backend.service;
 
 import com.pricetag.backend.dto.response.PropertyData;
+import com.pricetag.backend.entity.CompanyPricing;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -10,16 +11,12 @@ import java.util.Map;
 @Service
 public class PricingService {
 
-    @Value("${pricing.baseSqftPrice}")
-    private double baseSqftPrice; //
-    @Value("${pricing.storyMultiplier}")
-    private double storyMultiplier;
-    @Value("${pricing.minimumCharge}")
-    private int minimumCharge;
-    @Value("${pricing.priceRangeBuffer}")
-    private int priceRangeBuffer;
+    public Integer[] getPrice(CompanyPricing pricing, PropertyData propertyData, String lastWash) {
 
-    public Integer[] getPrice(PropertyData propertyData, String lastWash) {
+        double baseSqftPrice = pricing.getBaseSqftPrice();
+        double storyMultiplier = pricing.getStoryMultiplier();
+        int minimumCharge = pricing.getMinimumPrice();
+        int priceRangeBuffer = pricing.getPriceRangeBuffer();
 
         if (propertyData.sqft() == null || propertyData.stories() == null){
             return null;
@@ -64,8 +61,7 @@ public class PricingService {
 
         //calculate final price range
         int finalQuoteMedian = (int) Math.ceil(basePrice * ageMultiplier * lastWashMultiplier);
-        int finalQuoteLower = (finalQuoteMedian - priceRangeBuffer) < minimumCharge ?
-                minimumCharge : (finalQuoteMedian - priceRangeBuffer);
+        int finalQuoteLower = Math.max((finalQuoteMedian - priceRangeBuffer), minimumCharge);
         int finalQuoteHigher = finalQuoteLower + (priceRangeBuffer * 2);
 
         return new Integer[]{finalQuoteLower, finalQuoteHigher};

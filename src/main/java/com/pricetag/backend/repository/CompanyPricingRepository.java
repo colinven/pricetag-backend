@@ -11,5 +11,5 @@ import java.util.UUID;
 @Repository
 public interface CompanyPricingRepository extends JpaRepository<CompanyPricing, UUID> {
 
-    public Optional<CompanyPricing> findByCompanyId(UUID companyId);
+    Optional<CompanyPricing> findByCompanyId(UUID companyId);
 }

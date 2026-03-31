@@ -28,7 +28,7 @@ public class AddressFormatter {
             Map.entry("Parkway", "Pkwy")
     );
 
-    public String formatAddress(AddressInfo address) {
+    public static String formatAddress(AddressInfo address) {
 
         if (
                 address.street().isBlank() ||

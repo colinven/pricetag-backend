@@ -50,4 +50,8 @@ public class Company {
     @OneToOne(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private CompanyPricing pricing;
 
+    public boolean hasServiceAreaConfigured() {
+        return serviceAreaLatitude != null && serviceAreaLongitude != null && serviceRadiusMiles != null;
+    }
+
 }

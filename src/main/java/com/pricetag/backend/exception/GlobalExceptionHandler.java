@@ -65,4 +65,40 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(status).body(error);
     }
+
+    @ExceptionHandler(value = PricingNotConfiguredException.class)
+    public ResponseEntity<APIError> handlePricingNotConfiguredException(PricingNotConfiguredException ex) {
+        HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(value = OutOfServiceAreaException.class)
+    public ResponseEntity<APIError> handleOutOfServiceAreaException(OutOfServiceAreaException ex) {
+        HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(value = GeocodingException.class)
+    public ResponseEntity<APIError> handleGeocodingException(GeocodingException ex) {
+        HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
 }
