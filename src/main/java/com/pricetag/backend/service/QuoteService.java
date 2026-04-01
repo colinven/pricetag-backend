@@ -56,12 +56,15 @@ public class QuoteService {
             PropertyData existingPropertyData = propertyService.getDataFromExistingProperty(existingProperty);
             LookupResult existingResult = new LookupResult(existingPropertyData, "Property data successfully retrieved from database.");
 
-            // Query db to see if there is an existing active quote for the requested property:
-            Quote existingQuote = quoteRepository.findByPropertyIdAndExpiresAtAfter(existingProperty.getId(), LocalDateTime.now())
+            // Query db to see if there is any existing active quote for the requested property:
+            Quote existingQuote = quoteRepository.findFirstByPropertyIdAndExpiresAtAfter(existingProperty.getId(), LocalDateTime.now())
                     .orElse(null);
 
-            // If active quote exists, but doesn't belong to the same customer, insert a new one in db with correct customer id
-            if (existingQuote != null && !existingQuote.getCustomer().equals(customer)) {
+            boolean customerAlreadyHasActiveQuote = quoteRepository.existsByPropertyIdAndCustomerIdAndExpiresAtAfter(
+                    existingProperty.getId(), customer.getId(), LocalDateTime.now());
+
+            // If active quote exists for property but this customer doesn't have one yet, insert a new one
+            if (existingQuote != null && !customerAlreadyHasActiveQuote) {
                 Quote quote = Quote.builder()
                         .company(company)
                         .customer(customer)
@@ -72,13 +75,13 @@ public class QuoteService {
                         .expiresAt(LocalDateTime.now().plusDays(companyPricing.getQuoteExpiryDays()))
                         .build();
                 quoteRepository.save(quote);
-
             }
             // Set price identical to existing active quote, otherwise re-price if quote is expired
             Integer[] price = existingQuote != null ?
                     new Integer[]{existingQuote.getPriceLow(), existingQuote.getPriceHigh()} :
                     pricingService.getPrice(companyPricing, existingPropertyData, request.lastWash());
 
+            // If no active quote was found for this property, insert a new one
             if (existingQuote == null) {
                 Quote quote = Quote.builder()
                         .company(company)

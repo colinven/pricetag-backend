@@ -11,5 +11,7 @@ import java.util.UUID;
 @Repository
 public interface QuoteRepository extends JpaRepository<Quote, UUID> {
 
-    Optional<Quote> findByPropertyIdAndExpiresAtAfter(UUID propertyId, LocalDateTime now);
+    Optional<Quote> findFirstByPropertyIdAndExpiresAtAfter(UUID propertyId, LocalDateTime now);
+
+    boolean existsByPropertyIdAndCustomerIdAndExpiresAtAfter(UUID propertyId, UUID customerId, LocalDateTime now);
 }

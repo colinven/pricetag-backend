@@ -161,8 +161,10 @@ public class QuoteServiceTest {
                 .priceHigh(300)
                 .expiresAt(LocalDateTime.now().plusDays(10))
                 .build();
-        when(quoteRepository.findByPropertyIdAndExpiresAtAfter(eq(property.getId()), any(LocalDateTime.class)))
+        when(quoteRepository.findFirstByPropertyIdAndExpiresAtAfter(eq(property.getId()), any(LocalDateTime.class)))
                 .thenReturn(Optional.of(existingQuote));
+        when(quoteRepository.existsByPropertyIdAndCustomerIdAndExpiresAtAfter(
+                eq(property.getId()), eq(customer.getId()), any(LocalDateTime.class))).thenReturn(true);
 
         QuoteResponse response = quoteService.getQuote(SLUG, quoteRequest);
 
@@ -191,7 +193,7 @@ public class QuoteServiceTest {
                 .priceHigh(300)
                 .expiresAt(LocalDateTime.now().plusDays(10))
                 .build();
-        when(quoteRepository.findByPropertyIdAndExpiresAtAfter(eq(property.getId()), any(LocalDateTime.class)))
+        when(quoteRepository.findFirstByPropertyIdAndExpiresAtAfter(eq(property.getId()), any(LocalDateTime.class)))
                 .thenReturn(Optional.of(existingQuote));
 
         QuoteResponse response = quoteService.getQuote(SLUG, quoteRequest);
@@ -211,7 +213,7 @@ public class QuoteServiceTest {
         when(propertyRepository.existsByFullAddress(FORMATTED_ADDRESS)).thenReturn(true);
         when(propertyRepository.findByFullAddress(FORMATTED_ADDRESS)).thenReturn(Optional.of(property));
         when(propertyService.getDataFromExistingProperty(property)).thenReturn(existingData);
-        when(quoteRepository.findByPropertyIdAndExpiresAtAfter(eq(property.getId()), any(LocalDateTime.class)))
+        when(quoteRepository.findFirstByPropertyIdAndExpiresAtAfter(eq(property.getId()), any(LocalDateTime.class)))
                 .thenReturn(Optional.empty());
         when(pricingService.getPrice(any(), eq(existingData), anyString())).thenReturn(new Integer[]{250, 350});
 
