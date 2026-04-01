@@ -4,12 +4,10 @@ import com.pricetag.backend.dto.*;
 import com.pricetag.backend.dto.request.AmendedQuoteRequest;
 import com.pricetag.backend.dto.request.QuoteRequest;
 import com.pricetag.backend.dto.response.AmendedPriceResponse;
+import com.pricetag.backend.dto.response.PropertyData;
 import com.pricetag.backend.dto.response.QuoteResponse;
 import com.pricetag.backend.entity.*;
-import com.pricetag.backend.exception.CompanyNotFoundException;
-import com.pricetag.backend.exception.GeocodingException;
-import com.pricetag.backend.exception.OutOfServiceAreaException;
-import com.pricetag.backend.exception.PricingNotConfiguredException;
+import com.pricetag.backend.exception.*;
 import com.pricetag.backend.process.LookupProcess;
 import com.pricetag.backend.process.LookupResult;
 import com.pricetag.backend.repository.*;
@@ -29,7 +27,7 @@ public class QuoteService {
     private final CustomerService customerService;
     private final PropertyService propertyService;
     private final PricingService pricingService;
-    private final GoogleMapsService googleMapsService;
+    private final GeoUtils geoUtils;
 
     private final CompanyRepository companyRepository;
     private final CustomerRepository customerRepository;
@@ -40,74 +38,138 @@ public class QuoteService {
     @Transactional
     public QuoteResponse getQuote(String slug, QuoteRequest request) {
 
-        Company company = companyRepository.findBySlug(slug)
-                .orElseThrow(() -> new CompanyNotFoundException(slug));
-
-        CompanyPricing companyPricing = companyPricingRepository.findByCompanyId(company.getId())
-                .orElseThrow(PricingNotConfiguredException::new);
-
+        Company company = companyRepository.findBySlug(slug).orElseThrow(() -> new CompanyNotFoundException(slug));
+        CompanyPricing companyPricing = companyPricingRepository.findByCompanyId(company.getId()).orElseThrow(PricingNotConfiguredException::new);
         Customer customer = customerService.findOrCreate(request);
-        customerRepository.save(customer);
-
         AddressInfo addressInfo = new AddressInfo(request.street(), request.city(), request.state(), request.zip());
         String formattedAddress = AddressFormatter.formatAddress(addressInfo);
 
-        if (company.hasServiceAreaConfigured()) {
-            try {
-                LatLng propertyCoordinates = googleMapsService.geocode(formattedAddress);
-                if (!GeoUtils.isInServiceArea(company, propertyCoordinates)) throw new OutOfServiceAreaException();
+
+        // Reject requests for properties out of company service area
+        if (company.hasServiceAreaConfigured() && !geoUtils.propertyIsInServiceArea(company, formattedAddress)) throw new OutOfServiceAreaException();
+
+        customerRepository.save(customer);
+
+        // This block executes when the requested property already exists in the db by address (prevents unnecessary property scrape):
+        if (propertyRepository.existsByFullAddress(formattedAddress)) {
+            Property existingProperty = propertyRepository.findByFullAddress(formattedAddress).orElseThrow();
+            PropertyData existingPropertyData = propertyService.getDataFromExistingProperty(existingProperty);
+            LookupResult existingResult = new LookupResult(existingPropertyData, "Property data successfully retrieved from database.");
+
+            // Query db to see if there is an existing active quote for the requested property:
+            Quote existingQuote = quoteRepository.findByPropertyIdAndExpiresAtAfter(existingProperty.getId(), LocalDateTime.now())
+                    .orElse(null);
+
+            // If active quote exists, but doesn't belong to the same customer, insert a new one in db with correct customer id
+            if (existingQuote != null && !existingQuote.getCustomer().equals(customer)) {
+                Quote quote = Quote.builder()
+                        .company(company)
+                        .customer(customer)
+                        .property(existingProperty)
+                        .priceLow(existingQuote.getPriceLow())
+                        .priceHigh(existingQuote.getPriceHigh())
+                        .status(Quote.Status.PENDING)
+                        .expiresAt(LocalDateTime.now().plusDays(companyPricing.getQuoteExpiryDays()))
+                        .build();
+                quoteRepository.save(quote);
+
             }
-            catch (GeocodingException e) {
-                // google geocoding failed - bypass service area check and continue
-                // TODO find a better solution to failed google geocode calls
+            // Set price identical to existing active quote, otherwise re-price if quote is expired
+            Integer[] price = existingQuote != null ?
+                    new Integer[]{existingQuote.getPriceLow(), existingQuote.getPriceHigh()} :
+                    pricingService.getPrice(companyPricing, existingPropertyData, request.lastWash());
+
+            if (existingQuote == null) {
+                Quote quote = Quote.builder()
+                        .company(company)
+                        .customer(customer)
+                        .property(existingProperty)
+                        .priceLow(price[0])
+                        .priceHigh(price[1])
+                        .status(Quote.Status.PENDING)
+                        .expiresAt(LocalDateTime.now().plusDays(companyPricing.getQuoteExpiryDays()))
+                        .build();
+                quoteRepository.save(quote);
             }
+
+            return QuoteResponse.builder()
+                    .lookupResult(existingResult)
+                    .price(price)
+                    .address(existingProperty.getFullAddress())
+                    .build();
         }
-        // TODO if property already exists in DB, pull that record, otherwise lookup
-        // after checking if property exists, check if a quote existsByPropertyId && !isExpired. if true, return that quote.
+
+        // Only scrape property if property data is not already in db
         LookupResult lookupResult = lookupProcess.startProcess(formattedAddress);
 
-        if (lookupResult.data() != null) {
-            Integer[] priceRange = pricingService.getPrice(companyPricing, lookupResult.data(), request.lastWash());
+        boolean resultIsMissingData = lookupResult.data() == null ||
+                lookupResult.data().sqft() == null ||
+                lookupResult.data().stories() == null;
 
-            Property property = propertyService.createProperty(formattedAddress, request, lookupResult);
-            propertyRepository.save(property);
+        // If property data came back with missing fields, set null price in QuoteResponse (signals client that quote needs amendment)
+        Integer[] newPriceRange = resultIsMissingData ? null :
+                pricingService.getPrice(companyPricing, lookupResult.data(), request.lastWash());
+
+        // If property data came back whole, generate quote, insert Property and Quote entities into db, return complete QuoteRequest
+        if (!resultIsMissingData) {
+            Property property = propertyRepository.findByFullAddress(formattedAddress)
+                    .orElseGet(() -> propertyService.createProperty(formattedAddress, addressInfo, lookupResult.data()));
 
             Quote quoteEntity = Quote.builder()
                     .company(company)
                     .customer(customer)
                     .property(property)
-                    .priceLow(priceRange[0])
-                    .priceHigh(priceRange[1])
+                    .priceLow(newPriceRange[0])
+                    .priceHigh(newPriceRange[1])
                     .status(Quote.Status.PENDING)
                     .expiresAt(LocalDateTime.now().plusDays(companyPricing.getQuoteExpiryDays()))
                     .build();
+
+            propertyRepository.save(property);
             quoteRepository.save(quoteEntity);
 
-            return QuoteResponse.builder()
-                    .lookupResult(lookupResult)
-                    .price(priceRange)
-                    .address(formattedAddress)
-                    .build();
-
-        } else return QuoteResponse.builder()
+        }
+        return QuoteResponse.builder()
                 .lookupResult(lookupResult)
-                .price(null)
+                .price(newPriceRange)
                 .address(formattedAddress)
-                .customerId(customer.getId())
+                .customerId(resultIsMissingData ? customer.getId() : null)
                 .build();
 
     }
 
-    // TODO need to figure out how we will receive back all necessary data to create Property record in db
-    // Currently, amended Quote records along with associated Property records do not get added to DB.
+    @Transactional
     public AmendedPriceResponse amendQuote(String slug, AmendedQuoteRequest request) {
 
+        Customer customer = customerRepository.findById(request.customerId())
+                .orElseThrow(() -> new CustomerNotFoundException(request.customerId()));
         Company company = companyRepository.findBySlug(slug)
                 .orElseThrow(() -> new CompanyNotFoundException(slug));
         CompanyPricing companyPricing = companyPricingRepository.findByCompanyId(company.getId())
                 .orElseThrow(PricingNotConfiguredException::new);
+        String formattedAddress = AddressFormatter.formatAddress(request.addressInfo());
+        Property  property = propertyRepository.findByFullAddress(formattedAddress)
+                .orElseGet(() -> propertyService.createProperty(
+                        formattedAddress,
+                        request.addressInfo(),
+                        request.data())
+                );
 
+        Integer[] priceRange = pricingService.getPrice(companyPricing, request.data(), request.lastWash());
 
-        return new AmendedPriceResponse(pricingService.getPrice(companyPricing, request.data(), request.lastWash()));
+        Quote quoteEntity = Quote.builder()
+                .company(company)
+                .customer(customer)
+                .property(property)
+                .priceLow(priceRange[0])
+                .priceHigh(priceRange[1])
+                .status(Quote.Status.PENDING)
+                .expiresAt(LocalDateTime.now().plusDays(companyPricing.getQuoteExpiryDays()))
+                .build();
+
+        propertyRepository.save(property);
+        quoteRepository.save(quoteEntity);
+
+        return new AmendedPriceResponse(priceRange);
     }
 }

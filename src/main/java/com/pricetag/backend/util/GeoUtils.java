@@ -2,12 +2,18 @@ package com.pricetag.backend.util;
 
 import com.pricetag.backend.dto.LatLng;
 import com.pricetag.backend.entity.Company;
+import com.pricetag.backend.exception.GeocodingException;
+import com.pricetag.backend.service.GoogleMapsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class GeoUtils {
 
-    public static double haversine(double lat1, double lng1, double lat2, double lng2) {
+    private final GoogleMapsService googleMapsService;
+
+    private double haversine(double lat1, double lng1, double lat2, double lng2) {
         final int EARTH_RADIUS_MILES = 3956;
 
         double dLat = Math.toRadians(lat2 - lat1);
@@ -22,13 +28,19 @@ public class GeoUtils {
         return EARTH_RADIUS_MILES * c;
     }
 
-    public static boolean isInServiceArea(Company company, LatLng coordinates) {
-        double distanceMiles = haversine(
-                company.getServiceAreaLatitude(),
-                company.getServiceAreaLongitude(),
-                coordinates.lat(),
-                coordinates.lng()
-        );
-        return distanceMiles <= company.getServiceRadiusMiles();
+    public boolean propertyIsInServiceArea(Company company, String formattedAddress) {
+        try {
+            LatLng coordinates = googleMapsService.geocode(formattedAddress);
+            double distanceMiles = haversine(
+                    company.getServiceAreaLatitude(),
+                    company.getServiceAreaLongitude(),
+                    coordinates.lat(),
+                    coordinates.lng()
+            );
+            return distanceMiles <= company.getServiceRadiusMiles();
+        } catch (GeocodingException e) {
+            // google geocoding failed - bypass service area check and continue
+        }
+        return true;
     }
 }

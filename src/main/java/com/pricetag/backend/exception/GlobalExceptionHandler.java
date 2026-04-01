@@ -66,6 +66,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(error);
     }
 
+    @ExceptionHandler(value = CustomerNotFoundException.class)
+    public ResponseEntity<APIError> handleCustomerNotFoundException(CompanyNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
+
     @ExceptionHandler(value = PricingNotConfiguredException.class)
     public ResponseEntity<APIError> handlePricingNotConfiguredException(PricingNotConfiguredException ex) {
         HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;

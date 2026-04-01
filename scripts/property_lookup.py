@@ -23,7 +23,7 @@ def main():
     try:
         from homeharvest import scrape_property
     except ImportError as e:
-        sys.stderr.write(f"homeharvest not installed. ran `./setup.sh` from project root?\n")
+        sys.stderr.write(f"homeharvest not installed.\n")
         sys.exit(1)
 
     try:
