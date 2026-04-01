@@ -1,6 +1,7 @@
 package com.pricetag.backend.controller;
 
 import com.pricetag.backend.dto.response.DashboardSummaryResponse;
+import com.pricetag.backend.dto.response.PendingQuotesResponse;
 import com.pricetag.backend.service.DashboardService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,5 +23,11 @@ public class DashboardController extends BaseController {
     public ResponseEntity<DashboardSummaryResponse> getDashboardSummary(HttpServletRequest request) {
         UUID companyId = extractCompanyId(request);
         return ResponseEntity.ok(dashboardService.getDashboardSummary(companyId));
+    }
+
+    @GetMapping("/dashboard/quotes-to-review")
+    public ResponseEntity<PendingQuotesResponse> getPendingQuotesToReview(HttpServletRequest request) {
+        UUID companyId = extractCompanyId(request);
+        return ResponseEntity.ok(dashboardService.getPendingQuotes(companyId));
     }
 }

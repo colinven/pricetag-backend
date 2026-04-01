@@ -1,6 +1,8 @@
 package com.pricetag.backend.service;
 
+import com.pricetag.backend.dto.QuoteSummary;
 import com.pricetag.backend.dto.response.DashboardSummaryResponse;
+import com.pricetag.backend.dto.response.PendingQuotesResponse;
 import com.pricetag.backend.entity.Company;
 import com.pricetag.backend.entity.Quote;
 import com.pricetag.backend.exception.CompanyNotFoundException;
@@ -23,8 +25,7 @@ public class DashboardService {
     private final QuoteRepository quoteRepository;
 
     public DashboardSummaryResponse getDashboardSummary (UUID companyId) {
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new CompanyNotFoundException(companyId));
+        if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
 
         int totalNumOfQuotes = quoteRepository.countByCompanyId(companyId);
         int numOfQuotesThirtyDays = quoteRepository.countByCompanyIdAndCreatedAtAfter(companyId, LocalDateTime.now().minusDays(30));
@@ -32,7 +33,7 @@ public class DashboardService {
 
         int totalReviewedQuotes =  quoteRepository.countByCompanyIdAndStatus(companyId, Quote.Status.REVIEWED);
         int totalAcceptedQuotes =  quoteRepository.countByCompanyIdAndStatus(companyId, Quote.Status.ACCEPTED);
-        double conversionRate = totalReviewedQuotes > 0 ? (double)totalAcceptedQuotes/(double)totalReviewedQuotes : 0.0;
+        double conversionRate = totalReviewedQuotes > 0 ? (double)totalAcceptedQuotes/totalReviewedQuotes : 0.0;
 
         List<Integer> finalPrices = quoteRepository.findFinalPricesByCompanyIdAndStatusIn(
                 companyId,
@@ -50,5 +51,11 @@ public class DashboardService {
                 .conversionRate(conversionRate)
                 .averageFinalPrice(averageFinalPrice.orElse(0.0))
                 .build();
+    }
+
+    public PendingQuotesResponse getPendingQuotes (UUID companyId) {
+        if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
+        List<QuoteSummary> pendingQuotes = quoteRepository.findByCompanyIdAndStatusOrderByCreatedAtAsc(companyId, Quote.Status.PENDING);
+        return new  PendingQuotesResponse(pendingQuotes);
     }
 }

@@ -1,6 +1,8 @@
 package com.pricetag.backend.service;
 
+import com.pricetag.backend.dto.QuoteSummary;
 import com.pricetag.backend.dto.response.DashboardSummaryResponse;
+import com.pricetag.backend.dto.response.PendingQuotesResponse;
 import com.pricetag.backend.entity.Company;
 import com.pricetag.backend.entity.Quote;
 import com.pricetag.backend.exception.CompanyNotFoundException;
@@ -13,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,7 +47,7 @@ public class DashboardServiceTest {
 
     @Test
     void givenUnknownCompanyId_whenGetDashboard_thenThrowsCompanyNotFoundException() {
-        when(companyRepository.findById(companyId)).thenReturn(Optional.empty());
+        when(companyRepository.existsById(companyId)).thenReturn(false);
 
         assertThatThrownBy(() -> dashboardService.getDashboardSummary(companyId))
                 .isInstanceOf(CompanyNotFoundException.class);
@@ -52,7 +55,7 @@ public class DashboardServiceTest {
 
     @Test
     void givenNormalData_whenGetDashboard_thenReturnsSummaryWithCorrectValues() {
-        when(companyRepository.findById(companyId)).thenReturn(Optional.of(company));
+        when(companyRepository.existsById(companyId)).thenReturn(true);
         when(quoteRepository.countByCompanyId(companyId)).thenReturn(50);
         when(quoteRepository.countByCompanyIdAndCreatedAtAfter(eq(companyId), any())).thenReturn(10);
         when(quoteRepository.countByCompanyIdAndStatus(companyId, Quote.Status.PENDING)).thenReturn(5);
@@ -71,7 +74,7 @@ public class DashboardServiceTest {
 
     @Test
     void givenNoReviewedQuotes_whenGetDashboard_thenConversionRateIsZero() {
-        when(companyRepository.findById(companyId)).thenReturn(Optional.of(company));
+        when(companyRepository.existsById(companyId)).thenReturn(true);
         when(quoteRepository.countByCompanyId(companyId)).thenReturn(5);
         when(quoteRepository.countByCompanyIdAndCreatedAtAfter(eq(companyId), any())).thenReturn(5);
         when(quoteRepository.countByCompanyIdAndStatus(companyId, Quote.Status.PENDING)).thenReturn(5);
@@ -86,7 +89,7 @@ public class DashboardServiceTest {
 
     @Test
     void givenNoAcceptedQuotes_whenGetDashboard_thenConversionRateIsZero() {
-        when(companyRepository.findById(companyId)).thenReturn(Optional.of(company));
+        when(companyRepository.existsById(companyId)).thenReturn(true);
         when(quoteRepository.countByCompanyId(companyId)).thenReturn(10);
         when(quoteRepository.countByCompanyIdAndCreatedAtAfter(eq(companyId), any())).thenReturn(10);
         when(quoteRepository.countByCompanyIdAndStatus(companyId, Quote.Status.PENDING)).thenReturn(0);
@@ -101,7 +104,7 @@ public class DashboardServiceTest {
 
     @Test
     void givenNoFinalPrices_whenGetDashboard_thenAverageFinalPriceIsZero() {
-        when(companyRepository.findById(companyId)).thenReturn(Optional.of(company));
+        when(companyRepository.existsById(companyId)).thenReturn(true);
         when(quoteRepository.countByCompanyId(companyId)).thenReturn(5);
         when(quoteRepository.countByCompanyIdAndCreatedAtAfter(eq(companyId), any())).thenReturn(5);
         when(quoteRepository.countByCompanyIdAndStatus(companyId, Quote.Status.PENDING)).thenReturn(5);
@@ -116,7 +119,7 @@ public class DashboardServiceTest {
 
     @Test
     void givenFinalPricesWithNulls_whenGetDashboard_thenAverageIgnoresNulls() {
-        when(companyRepository.findById(companyId)).thenReturn(Optional.of(company));
+        when(companyRepository.existsById(companyId)).thenReturn(true);
         when(quoteRepository.countByCompanyId(companyId)).thenReturn(10);
         when(quoteRepository.countByCompanyIdAndCreatedAtAfter(eq(companyId), any())).thenReturn(10);
         when(quoteRepository.countByCompanyIdAndStatus(companyId, Quote.Status.PENDING)).thenReturn(0);
@@ -132,7 +135,7 @@ public class DashboardServiceTest {
 
     @Test
     void givenAllFinalPricesNull_whenGetDashboard_thenAverageFinalPriceIsZero() {
-        when(companyRepository.findById(companyId)).thenReturn(Optional.of(company));
+        when(companyRepository.existsById(companyId)).thenReturn(true);
         when(quoteRepository.countByCompanyId(companyId)).thenReturn(3);
         when(quoteRepository.countByCompanyIdAndCreatedAtAfter(eq(companyId), any())).thenReturn(3);
         when(quoteRepository.countByCompanyIdAndStatus(companyId, Quote.Status.PENDING)).thenReturn(0);
@@ -144,5 +147,42 @@ public class DashboardServiceTest {
         DashboardSummaryResponse response = dashboardService.getDashboardSummary(companyId);
 
         assertThat(response.averageFinalPrice()).isEqualTo(0.0);
+    }
+
+    // getPendingQuotes
+
+    @Test
+    void givenUnknownCompanyId_whenGetPendingQuotes_thenThrowsCompanyNotFoundException() {
+        when(companyRepository.existsById(companyId)).thenReturn(false);
+
+        assertThatThrownBy(() -> dashboardService.getPendingQuotes(companyId))
+                .isInstanceOf(CompanyNotFoundException.class);
+    }
+
+    @Test
+    void givenNoPendingQuotes_whenGetPendingQuotes_thenReturnsEmptyList() {
+        when(companyRepository.existsById(companyId)).thenReturn(true);
+        when(quoteRepository.findByCompanyIdAndStatusOrderByCreatedAtAsc(companyId, Quote.Status.PENDING))
+                .thenReturn(List.of());
+
+        PendingQuotesResponse response = dashboardService.getPendingQuotes(companyId);
+
+        assertThat(response.pendingQuotes().isEmpty()).isTrue();
+    }
+
+    @Test
+    void givenPendingQuotes_whenGetPendingQuotes_thenReturnsQuotesInResponse() {
+        QuoteSummary summary = new QuoteSummary(
+                UUID.randomUUID(), Quote.Status.PENDING,
+                "John", "Doe", "123 Main St", 100, 200, LocalDateTime.now()
+        );
+        when(companyRepository.existsById(companyId)).thenReturn(true);
+        when(quoteRepository.findByCompanyIdAndStatusOrderByCreatedAtAsc(companyId, Quote.Status.PENDING))
+                .thenReturn(List.of(summary));
+
+        PendingQuotesResponse response = dashboardService.getPendingQuotes(companyId);
+
+        assertThat(response.pendingQuotes().size()).isEqualTo(1);
+        assertThat(response.pendingQuotes().get(0)).isEqualTo(summary);
     }
 }

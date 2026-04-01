@@ -1,5 +1,6 @@
 package com.pricetag.backend.repository;
 
+import com.pricetag.backend.dto.QuoteSummary;
 import com.pricetag.backend.entity.Quote;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,4 +26,11 @@ public interface QuoteRepository extends JpaRepository<Quote, UUID> {
 
     @Query("SELECT q.finalPrice FROM Quote q WHERE q.company.id = :companyId AND q.status IN :statuses")
     List<Integer> findFinalPricesByCompanyIdAndStatusIn(UUID companyId, List<Quote.Status> statuses);
+
+    @Query("SELECT new com.pricetag.backend.dto.QuoteSummary(" +
+    "q.id, q.status, q.customer.firstName, q.customer.lastName, " +
+    "q.property.fullAddress, q.priceLow, q.priceHigh, q.createdAt) " +
+    "FROM Quote q WHERE q.company.id = :companyId AND q.status = :status " +
+    "ORDER BY q.createdAt ASC")
+    List<QuoteSummary> findByCompanyIdAndStatusOrderByCreatedAtAsc(UUID companyId, Quote.Status status);
 }
