@@ -1,6 +1,6 @@
 package com.pricetag.backend.service;
 
-import com.pricetag.backend.dto.QuoteSummary;
+import com.pricetag.backend.dto.response.QuoteSummary;
 import com.pricetag.backend.dto.response.DashboardSummaryResponse;
 import com.pricetag.backend.dto.response.PendingQuotesResponse;
 import com.pricetag.backend.entity.Company;
@@ -17,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;

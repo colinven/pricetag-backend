@@ -1,14 +1,17 @@
 package com.pricetag.backend.service;
 
-import com.pricetag.backend.dto.QuoteSummary;
+import com.pricetag.backend.dto.response.QuoteSummary;
 import com.pricetag.backend.dto.response.DashboardSummaryResponse;
-import com.pricetag.backend.dto.response.PendingQuotesResponse;
-import com.pricetag.backend.entity.Company;
+import com.pricetag.backend.dto.response.QuotesResponse;
 import com.pricetag.backend.entity.Quote;
 import com.pricetag.backend.exception.CompanyNotFoundException;
 import com.pricetag.backend.repository.CompanyRepository;
 import com.pricetag.backend.repository.QuoteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -53,9 +56,29 @@ public class DashboardService {
                 .build();
     }
 
-    public PendingQuotesResponse getPendingQuotes (UUID companyId) {
+    public QuotesResponse getPendingQuotes (UUID companyId) {
         if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
         List<QuoteSummary> pendingQuotes = quoteRepository.findByCompanyIdAndStatusOrderByCreatedAtAsc(companyId, Quote.Status.PENDING);
-        return new  PendingQuotesResponse(pendingQuotes);
+        return new  QuotesResponse(pendingQuotes);
     }
+
+    public Page<QuoteSummary> getQuotes(UUID companyId, int page, int size, String sortBy, String sortDirection) {
+        if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
+        Sort sort = sortDirection.equals("desc")
+                ? Sort.by(mapSortBy(sortBy)).descending()
+                : Sort.by(mapSortBy(sortBy)).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return quoteRepository.findByCompanyId(companyId, pageable);
+    }
+
+    private String mapSortBy(String sortBy) {
+        return switch (sortBy) {
+            case "customerFirstName" -> "customer.firstName";
+            case "customerLastName" -> "customer.lastName";
+            case "propertyAddress" -> "property.fullAddress";
+            default -> "createdAt";
+        };
+    }
+
+
 }
