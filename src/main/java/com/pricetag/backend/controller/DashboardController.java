@@ -1,5 +1,7 @@
 package com.pricetag.backend.controller;
 
+import com.pricetag.backend.dto.request.FinalizeQuoteRequest;
+import com.pricetag.backend.dto.response.FinalizedQuoteResponse;
 import com.pricetag.backend.dto.response.QuoteSummary;
 import com.pricetag.backend.dto.response.DashboardSummaryResponse;
 import com.pricetag.backend.dto.response.QuotesResponse;
@@ -7,14 +9,8 @@ import com.pricetag.backend.service.DashboardService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -47,5 +43,15 @@ public class DashboardController extends BaseController {
 
         UUID companyId = extractCompanyId(request);
         return ResponseEntity.ok(dashboardService.getQuotes(companyId, page, size, sortBy, direction));
+    }
+
+    @PatchMapping("/dashboard/quotes/{quoteId}/finalize")
+    public ResponseEntity<FinalizedQuoteResponse> finalizeQuote(
+            HttpServletRequest request,
+            @PathVariable("quoteId") UUID quoteId,
+            @RequestBody FinalizeQuoteRequest finalizeQuoteRequest) {
+
+        UUID companyId = extractCompanyId(request);
+        return ResponseEntity.ok(dashboardService.finalizeQuote(companyId, quoteId, finalizeQuoteRequest.finalPrice()));
     }
 }

@@ -15,6 +15,7 @@ public record QuoteSummary(
         String propertyAddress,
         Integer priceLow,
         Integer priceHigh,
+        Integer finalPrice,
         LocalDateTime createdAt
 ) {
 }

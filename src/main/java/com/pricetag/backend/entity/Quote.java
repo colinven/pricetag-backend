@@ -45,7 +45,7 @@ public class Quote {
     private int priceHigh;
 
     @Column(name = "final_price")
-    private int finalPrice;
+    private Integer finalPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

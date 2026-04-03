@@ -32,7 +32,7 @@ public interface QuoteRepository extends JpaRepository<Quote, UUID> {
     @Query("""
             SELECT new com.pricetag.backend.dto.response.QuoteSummary(
                 q.id, q.status, q.customer.firstName, q.customer.lastName,
-                q.property.fullAddress, q.priceLow, q.priceHigh, q.createdAt)
+                q.property.fullAddress, q.priceLow, q.priceHigh, q.finalPrice, q.createdAt)
             FROM Quote q
             WHERE q.company.id = :companyId AND q.status = :status
             ORDER BY q.createdAt ASC
@@ -43,7 +43,7 @@ public interface QuoteRepository extends JpaRepository<Quote, UUID> {
     @Query(value = """
                 SELECT new com.pricetag.backend.dto.response.QuoteSummary(
                 q.id, q.status, q.customer.firstName, q.customer.lastName,
-                q.property.fullAddress, q.priceLow, q.priceHigh, q.createdAt)
+                q.property.fullAddress, q.priceLow, q.priceHigh, q.finalPrice, q.createdAt)
                 FROM Quote q
                 WHERE q.company.id = :companyId
             """,

@@ -1,10 +1,12 @@
 package com.pricetag.backend.service;
 
+import com.pricetag.backend.dto.response.FinalizedQuoteResponse;
 import com.pricetag.backend.dto.response.QuoteSummary;
 import com.pricetag.backend.dto.response.DashboardSummaryResponse;
 import com.pricetag.backend.dto.response.QuotesResponse;
 import com.pricetag.backend.entity.Quote;
 import com.pricetag.backend.exception.CompanyNotFoundException;
+import com.pricetag.backend.exception.QuoteNotFoundException;
 import com.pricetag.backend.repository.CompanyRepository;
 import com.pricetag.backend.repository.QuoteRepository;
 import lombok.RequiredArgsConstructor;
@@ -78,6 +80,20 @@ public class DashboardService {
             case "propertyAddress" -> "property.fullAddress";
             default -> "createdAt";
         };
+    }
+
+    public FinalizedQuoteResponse finalizeQuote(UUID companyId, UUID quoteId, Integer finalPrice) {
+        if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
+        Quote quote = quoteRepository.findById(quoteId).orElseThrow(() -> new QuoteNotFoundException(quoteId));
+        quote.setFinalPrice(finalPrice);
+        quote.setStatus(Quote.Status.REVIEWED);
+        quote.setReviewedAt(LocalDateTime.now());
+        quoteRepository.save(quote);
+        return FinalizedQuoteResponse.builder()
+                .quoteId(quoteId)
+                .finalPrice(finalPrice)
+                .status(Quote.Status.REVIEWED)
+                .build();
     }
 
 
