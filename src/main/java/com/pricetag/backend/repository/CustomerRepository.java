@@ -16,6 +16,10 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     Optional<Customer> findByEmail(String email);
 
+    Optional<Customer> findByEmailAndCompanyId(String email, UUID companyId);
+
+    Optional<Customer> findByIdAndCompanyId(UUID id, UUID companyId);
+
     @Query(value = """
             SELECT new com.pricetag.backend.dto.response.CustomerSummary(
             c.id, c.firstName, c.lastName, c.createdAt)

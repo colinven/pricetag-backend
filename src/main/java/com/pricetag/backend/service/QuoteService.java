@@ -60,8 +60,8 @@ public class QuoteService {
             Quote existingQuote = quoteRepository.findFirstByPropertyIdAndExpiresAtAfter(existingProperty.getId(), LocalDateTime.now())
                     .orElse(null);
 
-            boolean customerAlreadyHasActiveQuote = quoteRepository.existsByPropertyIdAndCustomerIdAndExpiresAtAfter(
-                    existingProperty.getId(), customer.getId(), LocalDateTime.now());
+            boolean customerAlreadyHasActiveQuote = quoteRepository.existsByPropertyIdAndCustomerIdAndCompanyIdAndExpiresAtAfter(
+                    existingProperty.getId(), customer.getId(), company.getId(), LocalDateTime.now());
 
             // If active quote exists for property but this customer doesn't have one yet, insert a new one
             if (existingQuote != null && !customerAlreadyHasActiveQuote) {

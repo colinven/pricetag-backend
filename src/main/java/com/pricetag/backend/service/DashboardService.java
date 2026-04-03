@@ -5,6 +5,7 @@ import com.pricetag.backend.entity.Customer;
 import com.pricetag.backend.entity.Property;
 import com.pricetag.backend.entity.Quote;
 import com.pricetag.backend.exception.CompanyNotFoundException;
+import com.pricetag.backend.exception.CustomerNotFoundException;
 import com.pricetag.backend.exception.InvalidQuoteStatusException;
 import com.pricetag.backend.exception.QuoteNotFoundException;
 import com.pricetag.backend.repository.CompanyRepository;
@@ -150,12 +151,36 @@ public class DashboardService {
 
     public Page<CustomerSummary> getCustomers(UUID companyId, int page, int size, String sortBy, String sortDirection) {
         if  (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
-        Sort sort = sortDirection.equals("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
+        Sort sort = sortDirection.equals("desc")
+                ? Sort.by(mapCustomerSortBy(sortBy)).descending()
+                : Sort.by(mapCustomerSortBy(sortBy)).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
         return customerRepository.findAllByCompanyId(companyId, pageable);
+    }
 
+    private String mapCustomerSortBy(String sortBy) {
+        return switch (sortBy) {
+            case "firstName" -> "firstName";
+            case "lastName"  -> "lastName";
+            default -> "createdAt";
+        };
+    }
+
+    public CustomerDetails getCustomerDetailsAndQuotesById(UUID companyId, UUID customerId) {
+        if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
+        Customer customer = customerRepository.findByIdAndCompanyId(customerId, companyId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
+        List<QuoteSummary> thisCustomersQuotes = quoteRepository
+                .findAllByCustomerIdAndCompanyIdOrderByCreatedAtDesc(customerId, companyId);
+        return CustomerDetails.builder()
+                .id(customerId)
+                .firstName(customer.getFirstName())
+                .lastName(customer.getLastName())
+                .email(customer.getEmail())
+                .phone(customer.getPhone())
+                .createdAt(customer.getCreatedAt())
+                .quotes(thisCustomersQuotes)
+                .build();
     }
 
 }

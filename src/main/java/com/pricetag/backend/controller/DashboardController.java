@@ -84,4 +84,13 @@ public class DashboardController extends BaseController {
         UUID companyId = extractCompanyId(request);
         return ResponseEntity.ok(dashboardService.getCustomers(companyId, page, size, sortBy, sortDirection));
     }
+
+    @GetMapping("/dashboard/customers/{customerId}")
+    public ResponseEntity<CustomerDetails> getCustomerDetails(
+            HttpServletRequest request,
+            @PathVariable UUID customerId) {
+
+        UUID companyId = extractCompanyId(request);
+        return ResponseEntity.ok(dashboardService.getCustomerDetailsAndQuotesById(companyId, customerId));
+    }
 }

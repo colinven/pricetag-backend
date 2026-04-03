@@ -18,7 +18,7 @@ public interface QuoteRepository extends JpaRepository<Quote, UUID> {
 
     Optional<Quote> findFirstByPropertyIdAndExpiresAtAfter(UUID propertyId, LocalDateTime now);
 
-    boolean existsByPropertyIdAndCustomerIdAndExpiresAtAfter(UUID propertyId, UUID customerId, LocalDateTime now);
+    boolean existsByPropertyIdAndCustomerIdAndCompanyIdAndExpiresAtAfter(UUID propertyId, UUID customerId, UUID companyId, LocalDateTime now);
 
     int countByCompanyId(UUID companyId);
 
@@ -52,4 +52,15 @@ public interface QuoteRepository extends JpaRepository<Quote, UUID> {
             countQuery = "SELECT COUNT(q) FROM Quote q WHERE q.company.id = :companyId"
     )
     Page<QuoteSummary> findByCompanyId(UUID companyId, Pageable pageable);
+
+    @Query("""
+            SELECT new com.pricetag.backend.dto.response.QuoteSummary(
+                q.id, q.status, q.customer.firstName, q.customer.lastName,
+                q.property.fullAddress, q.priceLow, q.priceHigh, q.finalPrice, q.createdAt)
+            FROM Quote q
+            WHERE q.customer.id = :customerId AND q.company.id = :companyId
+            ORDER BY q.createdAt DESC
+            """
+    )
+    List<QuoteSummary> findAllByCustomerIdAndCompanyIdOrderByCreatedAtDesc(UUID customerId, UUID companyId);
 }

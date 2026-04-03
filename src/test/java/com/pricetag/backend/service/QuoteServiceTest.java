@@ -116,7 +116,7 @@ public class QuoteServiceTest {
 
         when(companyRepository.findBySlug(SLUG)).thenReturn(Optional.of(company));
         when(companyPricingRepository.findByCompanyId(company.getId())).thenReturn(Optional.of(companyPricing));
-        when(customerService.findOrCreate(quoteRequest)).thenReturn(customer);
+        when(customerService.findOrCreate(quoteRequest, company)).thenReturn(customer);
         when(geoUtils.propertyIsInServiceArea(eq(company), anyString())).thenReturn(false);
 
         assertThatThrownBy(() -> quoteService.getQuote(SLUG, quoteRequest))
@@ -131,7 +131,7 @@ public class QuoteServiceTest {
 
         when(companyRepository.findBySlug(SLUG)).thenReturn(Optional.of(company));
         when(companyPricingRepository.findByCompanyId(company.getId())).thenReturn(Optional.of(companyPricing));
-        when(customerService.findOrCreate(quoteRequest)).thenReturn(customer);
+        when(customerService.findOrCreate(quoteRequest, company)).thenReturn(customer);
         when(propertyRepository.existsByFullAddress(FORMATTED_ADDRESS)).thenReturn(false);
         when(lookupProcess.startProcess(FORMATTED_ADDRESS)).thenReturn(lookupResult);
         when(pricingService.getPrice(any(), eq(data), anyString())).thenReturn(new Integer[]{100, 150});
@@ -147,7 +147,7 @@ public class QuoteServiceTest {
     void givenPropertyInDb_withActiveQuoteForSameCustomer_whenGetQuote_thenReturnsExistingPriceWithoutNewQuote() {
         when(companyRepository.findBySlug(SLUG)).thenReturn(Optional.of(company));
         when(companyPricingRepository.findByCompanyId(company.getId())).thenReturn(Optional.of(companyPricing));
-        when(customerService.findOrCreate(quoteRequest)).thenReturn(customer);
+        when(customerService.findOrCreate(quoteRequest, company)).thenReturn(customer);
         when(propertyRepository.existsByFullAddress(FORMATTED_ADDRESS)).thenReturn(true);
         when(propertyRepository.findByFullAddress(FORMATTED_ADDRESS)).thenReturn(Optional.of(property));
         when(propertyService.getDataFromExistingProperty(property)).thenReturn(
@@ -163,8 +163,8 @@ public class QuoteServiceTest {
                 .build();
         when(quoteRepository.findFirstByPropertyIdAndExpiresAtAfter(eq(property.getId()), any(LocalDateTime.class)))
                 .thenReturn(Optional.of(existingQuote));
-        when(quoteRepository.existsByPropertyIdAndCustomerIdAndExpiresAtAfter(
-                eq(property.getId()), eq(customer.getId()), any(LocalDateTime.class))).thenReturn(true);
+        when(quoteRepository.existsByPropertyIdAndCustomerIdAndCompanyIdAndExpiresAtAfter(
+                eq(property.getId()), eq(customer.getId()), eq(company.getId()), any(LocalDateTime.class))).thenReturn(true);
 
         QuoteResponse response = quoteService.getQuote(SLUG, quoteRequest);
 
@@ -179,7 +179,7 @@ public class QuoteServiceTest {
 
         when(companyRepository.findBySlug(SLUG)).thenReturn(Optional.of(company));
         when(companyPricingRepository.findByCompanyId(company.getId())).thenReturn(Optional.of(companyPricing));
-        when(customerService.findOrCreate(quoteRequest)).thenReturn(customer);
+        when(customerService.findOrCreate(quoteRequest, company)).thenReturn(customer);
         when(propertyRepository.existsByFullAddress(FORMATTED_ADDRESS)).thenReturn(true);
         when(propertyRepository.findByFullAddress(FORMATTED_ADDRESS)).thenReturn(Optional.of(property));
         when(propertyService.getDataFromExistingProperty(property)).thenReturn(
@@ -209,7 +209,7 @@ public class QuoteServiceTest {
 
         when(companyRepository.findBySlug(SLUG)).thenReturn(Optional.of(company));
         when(companyPricingRepository.findByCompanyId(company.getId())).thenReturn(Optional.of(companyPricing));
-        when(customerService.findOrCreate(quoteRequest)).thenReturn(customer);
+        when(customerService.findOrCreate(quoteRequest, company)).thenReturn(customer);
         when(propertyRepository.existsByFullAddress(FORMATTED_ADDRESS)).thenReturn(true);
         when(propertyRepository.findByFullAddress(FORMATTED_ADDRESS)).thenReturn(Optional.of(property));
         when(propertyService.getDataFromExistingProperty(property)).thenReturn(existingData);
@@ -232,7 +232,7 @@ public class QuoteServiceTest {
 
         when(companyRepository.findBySlug(SLUG)).thenReturn(Optional.of(company));
         when(companyPricingRepository.findByCompanyId(company.getId())).thenReturn(Optional.of(companyPricing));
-        when(customerService.findOrCreate(quoteRequest)).thenReturn(customer);
+        when(customerService.findOrCreate(quoteRequest, company)).thenReturn(customer);
         when(propertyRepository.existsByFullAddress(FORMATTED_ADDRESS)).thenReturn(false);
         when(lookupProcess.startProcess(FORMATTED_ADDRESS)).thenReturn(lookupResult);
         when(pricingService.getPrice(any(), eq(data), anyString())).thenReturn(new Integer[]{300, 400});
@@ -256,7 +256,7 @@ public class QuoteServiceTest {
 
         when(companyRepository.findBySlug(SLUG)).thenReturn(Optional.of(company));
         when(companyPricingRepository.findByCompanyId(company.getId())).thenReturn(Optional.of(companyPricing));
-        when(customerService.findOrCreate(quoteRequest)).thenReturn(customer);
+        when(customerService.findOrCreate(quoteRequest, company)).thenReturn(customer);
         when(propertyRepository.existsByFullAddress(FORMATTED_ADDRESS)).thenReturn(false);
         when(lookupProcess.startProcess(FORMATTED_ADDRESS)).thenReturn(lookupResult);
 

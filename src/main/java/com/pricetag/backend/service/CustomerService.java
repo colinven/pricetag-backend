@@ -14,7 +14,7 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
 
     public Customer findOrCreate(QuoteRequest request, Company company) {
-        Customer customer = customerRepository.findByEmail(request.email())
+        Customer customer = customerRepository.findByEmailAndCompanyId(request.email(), company.getId())
                 .orElse(new Customer());
         customer.setEmail(request.email());
         customer.setPhone(request.phone());
