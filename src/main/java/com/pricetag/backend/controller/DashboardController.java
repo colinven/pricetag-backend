@@ -48,6 +48,7 @@ public class DashboardController extends BaseController {
     public ResponseEntity<QuoteDetails> getQuoteDetails(
             HttpServletRequest request,
             @PathVariable UUID quoteId) {
+
         UUID companyId = extractCompanyId(request);
         return ResponseEntity.ok(dashboardService.getQuoteDetailsById(companyId, quoteId));
     }
@@ -70,5 +71,17 @@ public class DashboardController extends BaseController {
 
         UUID companyId = extractCompanyId(request);
         return ResponseEntity.ok(dashboardService.manuallyChangeQuoteStatus(companyId, quoteId, updateQuoteStatusRequest.status()));
+    }
+
+    @GetMapping("/dashboard/customers")
+    public ResponseEntity<Page<CustomerSummary>> getCustomers(
+            HttpServletRequest request,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection) {
+
+        UUID companyId = extractCompanyId(request);
+        return ResponseEntity.ok(dashboardService.getCustomers(companyId, page, size, sortBy, sortDirection));
     }
 }

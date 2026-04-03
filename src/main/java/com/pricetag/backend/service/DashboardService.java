@@ -8,6 +8,7 @@ import com.pricetag.backend.exception.CompanyNotFoundException;
 import com.pricetag.backend.exception.InvalidQuoteStatusException;
 import com.pricetag.backend.exception.QuoteNotFoundException;
 import com.pricetag.backend.repository.CompanyRepository;
+import com.pricetag.backend.repository.CustomerRepository;
 import com.pricetag.backend.repository.QuoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,7 @@ public class DashboardService {
 
     private final CompanyRepository companyRepository;
     private final QuoteRepository quoteRepository;
+    private final CustomerRepository customerRepository;
 
     public DashboardSummaryResponse getDashboardSummary (UUID companyId) {
         if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
@@ -146,8 +148,14 @@ public class DashboardService {
                 .build();
     }
 
-//    public Page<CustomerSummary> getCustomers(UUID companyId, int page, int size, String sortBy, String sortDirection) {
-//
-//    }
+    public Page<CustomerSummary> getCustomers(UUID companyId, int page, int size, String sortBy, String sortDirection) {
+        if  (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
+        Sort sort = sortDirection.equals("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return customerRepository.findAllByCompanyId(companyId, pageable);
+
+    }
 
 }
