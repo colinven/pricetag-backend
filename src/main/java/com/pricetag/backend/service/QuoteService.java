@@ -40,7 +40,7 @@ public class QuoteService {
 
         Company company = companyRepository.findBySlug(slug).orElseThrow(() -> new CompanyNotFoundException(slug));
         CompanyPricing companyPricing = companyPricingRepository.findByCompanyId(company.getId()).orElseThrow(PricingNotConfiguredException::new);
-        Customer customer = customerService.findOrCreate(request);
+        Customer customer = customerService.findOrCreate(request, company);
         AddressInfo addressInfo = new AddressInfo(request.street(), request.city(), request.state(), request.zip());
         String formattedAddress = AddressFormatter.formatAddress(addressInfo);
 
