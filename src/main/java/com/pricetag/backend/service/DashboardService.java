@@ -1,9 +1,8 @@
 package com.pricetag.backend.service;
 
-import com.pricetag.backend.dto.response.FinalizedQuoteResponse;
-import com.pricetag.backend.dto.response.QuoteSummary;
-import com.pricetag.backend.dto.response.DashboardSummaryResponse;
-import com.pricetag.backend.dto.response.QuotesResponse;
+import com.pricetag.backend.dto.response.*;
+import com.pricetag.backend.entity.Customer;
+import com.pricetag.backend.entity.Property;
 import com.pricetag.backend.entity.Quote;
 import com.pricetag.backend.exception.CompanyNotFoundException;
 import com.pricetag.backend.exception.QuoteNotFoundException;
@@ -80,6 +79,31 @@ public class DashboardService {
             case "propertyAddress" -> "property.fullAddress";
             default -> "createdAt";
         };
+    }
+
+    public QuoteDetails getQuoteDetailsById(UUID companyId, UUID quoteId) {
+        if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
+        Quote quote = quoteRepository.findById(quoteId).orElseThrow(() -> new  QuoteNotFoundException(quoteId));
+        Customer customer = quote.getCustomer();
+        Property property = quote.getProperty();
+
+        return QuoteDetails.builder()
+                .id(quoteId)
+                .customerFirstName(customer.getFirstName()).customerLastName(customer.getLastName())
+                .customerEmail(customer.getEmail()).customerPhone(customer.getPhone())
+                .propertyAddress(property.getFullAddress())
+                .propertySqft(property.getSqft()).propertyStories(property.getNumberOfStories())
+                .propertyYearBuilt(property.getYearBuilt()).propertyGarageSize(property.getGarageSizeCars())
+                .propertyType(property.getPropertyType())
+                .priceLow(quote.getPriceLow()).priceHigh(quote.getPriceHigh())
+                .finalPrice(quote.getFinalPrice())
+                .status(quote.getStatus())
+                .createdAt(quote.getCreatedAt())
+                .reviewedAt(quote.getReviewedAt())
+                .acceptedAt(quote.getAcceptedAt())
+                .declinedAt(quote.getDeclinedAt())
+                .expiresAt(quote.getExpiresAt())
+                .build();
     }
 
     public FinalizedQuoteResponse finalizeQuote(UUID companyId, UUID quoteId, Integer finalPrice) {

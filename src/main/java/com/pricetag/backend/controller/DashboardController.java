@@ -1,10 +1,7 @@
 package com.pricetag.backend.controller;
 
 import com.pricetag.backend.dto.request.FinalizeQuoteRequest;
-import com.pricetag.backend.dto.response.FinalizedQuoteResponse;
-import com.pricetag.backend.dto.response.QuoteSummary;
-import com.pricetag.backend.dto.response.DashboardSummaryResponse;
-import com.pricetag.backend.dto.response.QuotesResponse;
+import com.pricetag.backend.dto.response.*;
 import com.pricetag.backend.service.DashboardService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +40,14 @@ public class DashboardController extends BaseController {
 
         UUID companyId = extractCompanyId(request);
         return ResponseEntity.ok(dashboardService.getQuotes(companyId, page, size, sortBy, direction));
+    }
+
+    @GetMapping("/dashboard/quotes/{quoteId}")
+    public ResponseEntity<QuoteDetails> getQuoteDetails(
+            HttpServletRequest request,
+            @PathVariable UUID quoteId) {
+        UUID companyId = extractCompanyId(request);
+        return ResponseEntity.ok(dashboardService.getQuoteDetailsById(companyId, quoteId));
     }
 
     @PatchMapping("/dashboard/quotes/{quoteId}/finalize")
