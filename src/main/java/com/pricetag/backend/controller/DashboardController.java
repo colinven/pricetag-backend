@@ -1,9 +1,11 @@
 package com.pricetag.backend.controller;
 
 import com.pricetag.backend.dto.request.FinalizeQuoteRequest;
+import com.pricetag.backend.dto.request.UpdateQuoteStatusRequest;
 import com.pricetag.backend.dto.response.*;
 import com.pricetag.backend.service.DashboardService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -54,9 +56,19 @@ public class DashboardController extends BaseController {
     public ResponseEntity<FinalizedQuoteResponse> finalizeQuote(
             HttpServletRequest request,
             @PathVariable("quoteId") UUID quoteId,
-            @RequestBody FinalizeQuoteRequest finalizeQuoteRequest) {
+            @RequestBody @Valid FinalizeQuoteRequest finalizeQuoteRequest) {
 
         UUID companyId = extractCompanyId(request);
         return ResponseEntity.ok(dashboardService.finalizeQuote(companyId, quoteId, finalizeQuoteRequest.finalPrice()));
+    }
+
+    @PatchMapping("/dashboard/quotes/{quoteId}/status")
+    public ResponseEntity<FinalizedQuoteResponse> updateQuoteStatus(
+            HttpServletRequest request,
+            @PathVariable("quoteId") UUID quoteId,
+            @RequestBody @Valid UpdateQuoteStatusRequest updateQuoteStatusRequest) {
+
+        UUID companyId = extractCompanyId(request);
+        return ResponseEntity.ok(dashboardService.manuallyChangeQuoteStatus(companyId, quoteId, updateQuoteStatusRequest.status()));
     }
 }

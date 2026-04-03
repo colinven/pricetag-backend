@@ -2,6 +2,7 @@ package com.pricetag.backend.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -122,6 +123,30 @@ public class GlobalExceptionHandler {
                 .statusCode(status.value())
                 .error(status.getReasonPhrase())
                 .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(value = InvalidQuoteStatusException.class)
+    public ResponseEntity<APIError> handleInvalidQuoteStatusException(InvalidQuoteStatusException ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<APIError> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message("Invalid request body. Please check your input.")
                 .build();
         return ResponseEntity.status(status).body(error);
     }

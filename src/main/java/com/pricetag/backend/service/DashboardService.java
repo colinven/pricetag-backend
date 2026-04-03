@@ -5,6 +5,7 @@ import com.pricetag.backend.entity.Customer;
 import com.pricetag.backend.entity.Property;
 import com.pricetag.backend.entity.Quote;
 import com.pricetag.backend.exception.CompanyNotFoundException;
+import com.pricetag.backend.exception.InvalidQuoteStatusException;
 import com.pricetag.backend.exception.QuoteNotFoundException;
 import com.pricetag.backend.repository.CompanyRepository;
 import com.pricetag.backend.repository.QuoteRepository;
@@ -120,5 +121,27 @@ public class DashboardService {
                 .build();
     }
 
+    public FinalizedQuoteResponse manuallyChangeQuoteStatus(UUID companyId, UUID quoteId, Quote.Status status) {
+        if (status != Quote.Status.DECLINED && status != Quote.Status.ACCEPTED) {
+            throw new InvalidQuoteStatusException("Status must be DECLINED or ACCEPTED");
+        }
+        if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
+        Quote quote = quoteRepository.findById(quoteId).orElseThrow(() -> new QuoteNotFoundException(quoteId));
+        quote.setStatus(status);
+        if (status == Quote.Status.ACCEPTED) {
+            quote.setAcceptedAt(LocalDateTime.now());
+            quote.setDeclinedAt(null);
+        }
+        if (status == Quote.Status.DECLINED) {
+            quote.setDeclinedAt(LocalDateTime.now());
+            quote.setAcceptedAt(null);
+        }
+        quoteRepository.save(quote);
+        return FinalizedQuoteResponse.builder()
+                .quoteId(quoteId)
+                .finalPrice(quote.getFinalPrice())
+                .status(quote.getStatus())
+                .build();
+    }
 
 }

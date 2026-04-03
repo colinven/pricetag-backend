@@ -1,8 +1,9 @@
 package com.pricetag.backend.dto.request;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 public record FinalizeQuoteRequest(
-        @NotNull Integer finalPrice
+        @NotNull @Positive Integer finalPrice
 ) {
 }
