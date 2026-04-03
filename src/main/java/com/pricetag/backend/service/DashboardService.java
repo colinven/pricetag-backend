@@ -36,7 +36,9 @@ public class DashboardService {
         int numOfQuotesThirtyDays = quoteRepository.countByCompanyIdAndCreatedAtAfter(companyId, LocalDateTime.now().minusDays(30));
         int numOfQuotesToReview = quoteRepository.countByCompanyIdAndStatus(companyId, Quote.Status.PENDING);
 
-        int totalReviewedQuotes =  quoteRepository.countByCompanyIdAndStatus(companyId, Quote.Status.REVIEWED);
+        int totalReviewedQuotes =  quoteRepository.countByCompanyIdAndStatusIn(
+                companyId,
+                List.of(Quote.Status.REVIEWED, Quote.Status.ACCEPTED,  Quote.Status.DECLINED));
         int totalAcceptedQuotes =  quoteRepository.countByCompanyIdAndStatus(companyId, Quote.Status.ACCEPTED);
         double conversionRate = totalReviewedQuotes > 0 ? (double)totalAcceptedQuotes/totalReviewedQuotes : 0.0;
 
@@ -143,5 +145,9 @@ public class DashboardService {
                 .status(quote.getStatus())
                 .build();
     }
+
+//    public Page<CustomerSummary> getCustomers(UUID companyId, int page, int size, String sortBy, String sortDirection) {
+//
+//    }
 
 }

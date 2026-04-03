@@ -26,6 +26,8 @@ public interface QuoteRepository extends JpaRepository<Quote, UUID> {
 
     int countByCompanyIdAndStatus(UUID companyId, Quote.Status status);
 
+    int countByCompanyIdAndStatusIn(UUID companyId, List<Quote.Status> statuses);
+
     @Query("SELECT q.finalPrice FROM Quote q WHERE q.company.id = :companyId AND q.status IN :statuses")
     List<Integer> findFinalPricesByCompanyIdAndStatusIn(UUID companyId, List<Quote.Status> statuses);
 
