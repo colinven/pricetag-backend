@@ -3,9 +3,7 @@ package com.pricetag.backend.service;
 import com.pricetag.backend.dto.*;
 import com.pricetag.backend.dto.request.AmendedQuoteRequest;
 import com.pricetag.backend.dto.request.QuoteRequest;
-import com.pricetag.backend.dto.response.AmendedPriceResponse;
-import com.pricetag.backend.dto.response.PropertyData;
-import com.pricetag.backend.dto.response.QuoteResponse;
+import com.pricetag.backend.dto.response.*;
 import com.pricetag.backend.entity.*;
 import com.pricetag.backend.exception.*;
 import com.pricetag.backend.process.LookupProcess;
@@ -18,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +26,7 @@ public class QuoteService {
     private final CustomerService customerService;
     private final PropertyService propertyService;
     private final PricingService pricingService;
+    private final QuoteTokenService quoteTokenService;
     private final GeoUtils geoUtils;
 
     private final CompanyRepository companyRepository;
@@ -34,6 +34,7 @@ public class QuoteService {
     private final CompanyPricingRepository companyPricingRepository;
     private final PropertyRepository propertyRepository;
     private final QuoteRepository quoteRepository;
+    private final QuoteTokenRepository quoteTokenRepository;
 
     @Transactional
     public QuoteResponse getQuote(String slug, QuoteRequest request) {
@@ -174,5 +175,64 @@ public class QuoteService {
         quoteRepository.save(quoteEntity);
 
         return new AmendedPriceResponse(priceRange);
+    }
+
+    public QuoteDetails viewFinalizedQuote(UUID quoteId, String quoteToken) {
+
+        quoteTokenService.validateToken(quoteId, quoteToken);
+
+        Quote quote = quoteRepository.findById(quoteId).orElseThrow(() -> new QuoteNotFoundException(quoteId));
+        Customer customer = quote.getCustomer();
+        Property property = quote.getProperty();
+        return QuoteDetails.builder()
+                .id(quote.getId())
+                .customerFirstName(customer.getFirstName()).customerLastName(customer.getLastName())
+                .customerEmail(customer.getEmail()).customerPhone(customer.getPhone())
+                .propertyAddress(property.getFullAddress())
+                .propertySqft(property.getSqft())
+                .propertyStories(property.getNumberOfStories())
+                .propertyYearBuilt(property.getYearBuilt())
+                .propertyGarageSize(property.getGarageSizeCars())
+                .propertyType(property.getPropertyType())
+                .priceLow(quote.getPriceLow()).priceHigh(quote.getPriceHigh())
+                .finalPrice(quote.getFinalPrice())
+                .status(quote.getStatus())
+                .createdAt(quote.getCreatedAt())
+                .reviewedAt(quote.getReviewedAt())
+                .expiresAt(quote.getExpiresAt())
+                .build();
+
+    }
+
+    public FinalizedQuoteResponse changeQuoteStatus(UUID quoteId, String quoteToken, Quote.Status status) {
+
+        if (status != Quote.Status.ACCEPTED && status != Quote.Status.DECLINED) {
+            throw new InvalidQuoteStatusException("Updated status must be ACCEPTED or DECLINED.");
+        }
+
+        // validate token - if token has already been consumed, reject request (customer can only accept/decline once)
+        QuoteToken savedToken = quoteTokenService.validateToken(quoteId, quoteToken);
+        quoteTokenService.checkIfTokenConsumed(savedToken);
+
+        Quote quote = quoteRepository.findById(quoteId).orElseThrow(() -> new QuoteNotFoundException(quoteId));
+
+        if (status == Quote.Status.ACCEPTED) {
+            quote.setAcceptedAt(LocalDateTime.now());
+            quote.setDeclinedAt(null);
+        } else {
+            quote.setDeclinedAt(LocalDateTime.now());
+            quote.setAcceptedAt(null);
+        }
+
+        // update quote status (ACCEPTED/DECLINED) and consume token
+        quote.setStatus(status);
+        quoteRepository.save(quote);
+        quoteTokenService.consumeToken(savedToken);
+
+        return FinalizedQuoteResponse.builder()
+                .quoteId(quote.getId())
+                .status(quote.getStatus())
+                .finalPrice(quote.getFinalPrice())
+                .build();
     }
 }

@@ -29,3 +29,8 @@ jwt:
   expiration: 86400000
 keys:
   googleMapsKey: ${GOOGLE_MAPS_API_KEY}
+  sendgridKey: ${SENDGRID_API_KEY}
+sendgrid:
+  sender: ${SENDGRID_SENDER}
+frontend:
+  domain: http://localhost:5173

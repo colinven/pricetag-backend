@@ -34,3 +34,4 @@ build/
 /scripts/venv/
 .env
 ROADMAP.md
+/docs/

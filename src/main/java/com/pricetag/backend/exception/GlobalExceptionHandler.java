@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -147,6 +148,66 @@ public class GlobalExceptionHandler {
                 .statusCode(status.value())
                 .error(status.getReasonPhrase())
                 .message("Invalid request body. Please check your input.")
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(value = InvalidQuoteTokenException.class)
+    public ResponseEntity<APIError> handleInvalidQuoteTokenException(InvalidQuoteTokenException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(value = QuoteTokenExpiredException.class)
+    public ResponseEntity<APIError> handleQuoteTokenExpiredException(QuoteTokenExpiredException ex) {
+        HttpStatus status = HttpStatus.GONE;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(value = QuoteTokenMismatchException.class)
+    public ResponseEntity<APIError> handleQuoteTokenMismatchException(QuoteTokenMismatchException ex) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(value = QuoteTokenConsumedException.class)
+    public ResponseEntity<APIError> handleQuoteTokenInvalidException(QuoteTokenConsumedException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(value = MissingServletRequestParameterException.class)
+    public ResponseEntity<APIError> handleMissingServletRequestParameterException(MissingServletRequestParameterException ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message(ex.getMessage())
                 .build();
         return ResponseEntity.status(status).body(error);
     }

@@ -11,6 +11,7 @@ import com.pricetag.backend.exception.QuoteNotFoundException;
 import com.pricetag.backend.repository.CompanyRepository;
 import com.pricetag.backend.repository.CustomerRepository;
 import com.pricetag.backend.repository.QuoteRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +32,8 @@ public class DashboardService {
     private final CompanyRepository companyRepository;
     private final QuoteRepository quoteRepository;
     private final CustomerRepository customerRepository;
+    private final QuoteTokenService quoteTokenService;
+    private final EmailService emailService;
 
     public DashboardSummaryResponse getDashboardSummary (UUID companyId) {
         if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
@@ -112,6 +115,7 @@ public class DashboardService {
                 .build();
     }
 
+    @Transactional
     public FinalizedQuoteResponse finalizeQuote(UUID companyId, UUID quoteId, Integer finalPrice) {
         if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
         Quote quote = quoteRepository.findById(quoteId).orElseThrow(() -> new QuoteNotFoundException(quoteId));
@@ -119,6 +123,10 @@ public class DashboardService {
         quote.setStatus(Quote.Status.REVIEWED);
         quote.setReviewedAt(LocalDateTime.now());
         quoteRepository.save(quote);
+
+        String quoteToken = quoteTokenService.generateToken(quote);
+        emailService.sendQuoteUrl(quote, quoteToken);
+
         return FinalizedQuoteResponse.builder()
                 .quoteId(quoteId)
                 .finalPrice(finalPrice)
@@ -136,11 +144,11 @@ public class DashboardService {
         if (status == Quote.Status.ACCEPTED) {
             quote.setAcceptedAt(LocalDateTime.now());
             quote.setDeclinedAt(null);
-        }
-        if (status == Quote.Status.DECLINED) {
+        } else {
             quote.setDeclinedAt(LocalDateTime.now());
             quote.setAcceptedAt(null);
         }
+
         quoteRepository.save(quote);
         return FinalizedQuoteResponse.builder()
                 .quoteId(quoteId)
