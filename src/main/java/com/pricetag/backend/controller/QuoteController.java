@@ -6,6 +6,7 @@ import com.pricetag.backend.dto.request.AmendedQuoteRequest;
 import com.pricetag.backend.dto.request.QuoteRequest;
 import com.pricetag.backend.entity.Quote;
 import com.pricetag.backend.repository.CompanyRepository;
+import com.pricetag.backend.service.CompanyService;
 import com.pricetag.backend.service.QuoteService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -23,7 +24,7 @@ import java.util.UUID;
 public class QuoteController {
 
     private final QuoteService quoteService;
-    private final CompanyRepository companyRepository;
+    private final CompanyService companyService;
 
     @PostMapping("/{slug}/quote-request")
     public ResponseEntity<QuoteResponse> getQuote(
@@ -41,12 +42,10 @@ public class QuoteController {
         return ResponseEntity.ok(amendedPriceResponse);
     }
 
-    // TODO have this method return company data for valid slugs so frontend can display it
-
-    @GetMapping("/{slug}/validate")
-    public ResponseEntity<Boolean> validateSlug(
+    @GetMapping("/{slug}/company-info")
+    public ResponseEntity<CompanySummary> getCompanyInfoBySlug(
             @PathVariable String slug) {
-        return ResponseEntity.ok(companyRepository.existsBySlug(slug));
+        return ResponseEntity.ok(companyService.getCompanySummaryFromSlug(slug));
     }
 
     @GetMapping("/quotes/{quoteId}")
