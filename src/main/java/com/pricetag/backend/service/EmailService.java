@@ -28,7 +28,7 @@ public class EmailService {
     private String sendgridSender;
 
     //@Async
-    public void sendQuoteUrl(Quote quote, String quoteToken) throws IOException {
+    public void sendLinkToQuoteEmail(Quote quote, String quoteToken) {
 
         String quoteUrl = frontendDomain + "/quotes/" + quote.getId() + "?token=" + quoteToken;
         System.out.println("Quote URL: " + quoteUrl);
@@ -55,5 +55,21 @@ public class EmailService {
 //            throw e;
 //        }
 
+    }
+
+    public void sendNewQuoteRequestEmail() {
+        // email sent to company when a new quote request comes in
+    }
+
+    public void sendQuoteRequestReceivedEmail() {
+        // confirmation email sent to customer after they submit a quote request
+    }
+
+    public void sendQuoteAcceptedOrDeclinedEmail() {
+        // email sent to company when customer accepts/declines a finalized quote
+    }
+
+    public void sendCopyOfAcceptedQuoteEmail() {
+        // email sent to customer after they accept a quote. (includes a pdf copy of the quote, next steps)
     }
 }

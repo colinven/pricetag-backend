@@ -176,18 +176,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(error);
     }
 
-    @ExceptionHandler(value = QuoteTokenMismatchException.class)
-    public ResponseEntity<APIError> handleQuoteTokenMismatchException(QuoteTokenMismatchException ex) {
-        HttpStatus status = HttpStatus.UNAUTHORIZED;
-        APIError error = APIError.builder()
-                .timestamp(LocalDateTime.now())
-                .statusCode(status.value())
-                .error(status.getReasonPhrase())
-                .message(ex.getMessage())
-                .build();
-        return ResponseEntity.status(status).body(error);
-    }
-
     @ExceptionHandler(value = QuoteTokenConsumedException.class)
     public ResponseEntity<APIError> handleQuoteTokenInvalidException(QuoteTokenConsumedException ex) {
         HttpStatus status = HttpStatus.CONFLICT;

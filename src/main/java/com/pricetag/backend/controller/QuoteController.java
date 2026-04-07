@@ -1,12 +1,9 @@
 package com.pricetag.backend.controller;
 
 import com.pricetag.backend.dto.request.CustomerQuoteDecision;
-import com.pricetag.backend.dto.response.AmendedPriceResponse;
+import com.pricetag.backend.dto.response.*;
 import com.pricetag.backend.dto.request.AmendedQuoteRequest;
 import com.pricetag.backend.dto.request.QuoteRequest;
-import com.pricetag.backend.dto.response.FinalizedQuoteResponse;
-import com.pricetag.backend.dto.response.QuoteDetails;
-import com.pricetag.backend.dto.response.QuoteResponse;
 import com.pricetag.backend.entity.Quote;
 import com.pricetag.backend.repository.CompanyRepository;
 import com.pricetag.backend.service.QuoteService;
@@ -44,15 +41,16 @@ public class QuoteController {
         return ResponseEntity.ok(amendedPriceResponse);
     }
 
+    // TODO have this method return company data for valid slugs so frontend can display it
+
     @GetMapping("/{slug}/validate")
     public ResponseEntity<Boolean> validateSlug(
             @PathVariable String slug) {
         return ResponseEntity.ok(companyRepository.existsBySlug(slug));
     }
 
-    // TODO make token param not required, enforce in service method
     @GetMapping("/quotes/{quoteId}")
-    public ResponseEntity<QuoteDetails> viewFinalizedQuote(
+    public ResponseEntity<QuoteAndCompanyDetails> viewFinalizedQuote(
             @PathVariable UUID quoteId,
             @RequestParam(required = false) String token) {
         return ResponseEntity.ok(quoteService.viewFinalizedQuote(quoteId, token));

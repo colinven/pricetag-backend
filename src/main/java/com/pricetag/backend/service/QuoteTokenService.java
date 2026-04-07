@@ -3,7 +3,6 @@ package com.pricetag.backend.service;
 import com.pricetag.backend.entity.Quote;
 import com.pricetag.backend.entity.QuoteToken;
 import com.pricetag.backend.exception.*;
-import com.pricetag.backend.repository.QuoteRepository;
 import com.pricetag.backend.repository.QuoteTokenRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,6 @@ import java.util.UUID;
 public class QuoteTokenService {
 
     private final QuoteTokenRepository quoteTokenRepository;
-    private final QuoteRepository quoteRepository;
 
     @Transactional
     public String generateToken(Quote quote) {

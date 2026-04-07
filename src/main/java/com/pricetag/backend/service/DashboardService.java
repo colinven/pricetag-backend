@@ -126,12 +126,8 @@ public class DashboardService {
         quoteRepository.save(quote);
 
         String quoteToken = quoteTokenService.generateToken(quote);
-        try {
-            emailService.sendQuoteUrl(quote, quoteToken);
-        } catch (IOException e) {
-            // Email failure should not roll back the quote finalization
-            throw new RuntimeException("Failed to send quote response email", e);
-        }
+
+        emailService.sendLinkToQuoteEmail(quote, quoteToken);
 
         return FinalizedQuoteResponse.builder()
                 .quoteId(quoteId)

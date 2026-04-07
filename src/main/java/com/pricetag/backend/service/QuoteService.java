@@ -177,15 +177,19 @@ public class QuoteService {
         return new AmendedPriceResponse(priceRange);
     }
 
-    public QuoteDetails viewFinalizedQuote(UUID quoteId, String quoteToken) {
+    public QuoteAndCompanyDetails viewFinalizedQuote(UUID quoteId, String quoteToken) {
 
         quoteTokenService.validateToken(quoteId, quoteToken);
 
         Quote quote = quoteRepository.findById(quoteId).orElseThrow(() -> new QuoteNotFoundException(quoteId));
         Customer customer = quote.getCustomer();
         Property property = quote.getProperty();
-        return QuoteDetails.builder()
+        Company company = quote.getCompany();
+        return QuoteAndCompanyDetails.builder()
                 .id(quote.getId())
+                .companyName(company.getName())
+                .companyEmail(company.getEmail())
+                .companyPhone(company.getPhone())
                 .customerFirstName(customer.getFirstName()).customerLastName(customer.getLastName())
                 .customerEmail(customer.getEmail()).customerPhone(customer.getPhone())
                 .propertyAddress(property.getFullAddress())
