@@ -62,6 +62,9 @@ public class QuoteServiceTest {
         company = new Company();
         company.setId(UUID.randomUUID());
         company.setSlug(SLUG);
+        company.setName("Test Company");
+        company.setEmail("test@company.com");
+        company.setPhone("555-9999");
 
         companyPricing = new CompanyPricing();
         companyPricing.setQuoteExpiryDays(30);
@@ -379,6 +382,7 @@ public class QuoteServiceTest {
         QuoteToken token = QuoteToken.builder().build();
         Quote quote = Quote.builder()
                 .id(quoteId)
+                .company(company)
                 .customer(customer)
                 .property(property)
                 .priceLow(200).priceHigh(300)
@@ -395,6 +399,9 @@ public class QuoteServiceTest {
         assertThat(result.id()).isEqualTo(quoteId);
         assertThat(result.finalPrice()).isEqualTo(250);
         assertThat(result.status()).isEqualTo(Quote.Status.REVIEWED);
+        assertThat(result.companyName()).isEqualTo("Test Company");
+        assertThat(result.companyEmail()).isEqualTo("test@company.com");
+        assertThat(result.companyPhone()).isEqualTo("555-9999");
         // viewing does NOT consume the token
         verify(quoteTokenService, never()).checkIfTokenConsumed(any());
         verify(quoteTokenService, never()).consumeToken(any());

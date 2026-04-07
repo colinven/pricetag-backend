@@ -229,7 +229,7 @@ public class DashboardServiceTest {
 
         Mockito.verify(quoteRepository, Mockito.times(1)).save(quote);
         verify(quoteTokenService).generateToken(quote);
-        verify(emailService).sendQuoteUrl(quote, "fake-raw-token");
+        verify(emailService).sendLinkToQuoteEmail(quote, "fake-raw-token");
     }
 
     @Test
@@ -250,7 +250,7 @@ public class DashboardServiceTest {
 
         dashboardService.finalizeQuote(companyId, quote.getId(), 400);
 
-        verify(emailService).sendQuoteUrl(quote, expectedRawToken);
+        verify(emailService).sendLinkToQuoteEmail(quote, expectedRawToken);
     }
 
     @Test
