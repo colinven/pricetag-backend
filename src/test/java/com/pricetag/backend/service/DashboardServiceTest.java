@@ -11,6 +11,7 @@ import com.pricetag.backend.exception.QuoteNotFoundException;
 import com.pricetag.backend.repository.CompanyRepository;
 import com.pricetag.backend.repository.CustomerRepository;
 import com.pricetag.backend.repository.QuoteRepository;
+import com.pricetag.backend.entity.QuoteToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +43,8 @@ public class DashboardServiceTest {
     @Mock private CompanyRepository companyRepository;
     @Mock private QuoteRepository quoteRepository;
     @Mock private CustomerRepository customerRepository;
+    @Mock private QuoteTokenService quoteTokenService;
+    @Mock private EmailService emailService;
 
     @InjectMocks
     private DashboardService dashboardService;
@@ -202,7 +205,7 @@ public class DashboardServiceTest {
     // finalizeQuote()
 
     @Test
-    void givenValidQuoteAndValidCompany_whenFinalizeQuote_thenUpdatesAndSavesQuote() {
+    void givenValidQuoteAndValidCompany_whenFinalizeQuote_thenUpdatesAndSavesQuote() throws Exception {
         Quote quote = Quote.builder()
                 .id(UUID.randomUUID())
                 .company(company)
@@ -213,6 +216,7 @@ public class DashboardServiceTest {
         int finalPrice = 350;
         when(companyRepository.existsById(companyId)).thenReturn(true);
         when(quoteRepository.findById(quote.getId())).thenReturn(Optional.of(quote));
+        when(quoteTokenService.generateToken(quote)).thenReturn("fake-raw-token");
 
         FinalizedQuoteResponse response = dashboardService.finalizeQuote(companyId, quote.getId(), finalPrice);
 
@@ -224,7 +228,29 @@ public class DashboardServiceTest {
         assertThat(response.finalPrice()).isEqualTo(quote.getFinalPrice());
 
         Mockito.verify(quoteRepository, Mockito.times(1)).save(quote);
+        verify(quoteTokenService).generateToken(quote);
+        verify(emailService).sendQuoteUrl(quote, "fake-raw-token");
+    }
 
+    @Test
+    void givenValidQuote_whenFinalizeQuote_thenRawTokenPassedToEmailNotHash() throws Exception {
+        // The raw token returned by generateToken must be passed to emailService unchanged —
+        // the hash must never reach the email link.
+        Quote quote = Quote.builder()
+                .id(UUID.randomUUID())
+                .company(company)
+                .customer(new Customer())
+                .property(new Property())
+                .status(Quote.Status.PENDING)
+                .build();
+        String expectedRawToken = "the-raw-token-for-email";
+        when(companyRepository.existsById(companyId)).thenReturn(true);
+        when(quoteRepository.findById(quote.getId())).thenReturn(Optional.of(quote));
+        when(quoteTokenService.generateToken(quote)).thenReturn(expectedRawToken);
+
+        dashboardService.finalizeQuote(companyId, quote.getId(), 400);
+
+        verify(emailService).sendQuoteUrl(quote, expectedRawToken);
     }
 
     @Test

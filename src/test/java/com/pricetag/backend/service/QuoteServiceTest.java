@@ -4,6 +4,7 @@ import com.pricetag.backend.dto.AddressInfo;
 import com.pricetag.backend.dto.request.AmendedQuoteRequest;
 import com.pricetag.backend.dto.request.QuoteRequest;
 import com.pricetag.backend.dto.response.AmendedPriceResponse;
+import com.pricetag.backend.dto.response.FinalizedQuoteResponse;
 import com.pricetag.backend.dto.response.PropertyData;
 import com.pricetag.backend.dto.response.QuoteResponse;
 import com.pricetag.backend.entity.*;
@@ -35,12 +36,14 @@ public class QuoteServiceTest {
     @Mock private CustomerService customerService;
     @Mock private PropertyService propertyService;
     @Mock private PricingService pricingService;
+    @Mock private QuoteTokenService quoteTokenService;
     @Mock private GeoUtils geoUtils;
     @Mock private CompanyRepository companyRepository;
     @Mock private CustomerRepository customerRepository;
     @Mock private CompanyPricingRepository companyPricingRepository;
     @Mock private PropertyRepository propertyRepository;
     @Mock private QuoteRepository quoteRepository;
+    @Mock private QuoteTokenRepository quoteTokenRepository;
 
     @InjectMocks
     private QuoteService quoteService;
@@ -366,5 +369,144 @@ public class QuoteServiceTest {
         verify(quoteRepository, times(1)).save(any(Quote.class));
         assertThat(response.price()[0]).isEqualTo(400);
         assertThat(response.price()[1]).isEqualTo(500);
+    }
+
+    // viewFinalizedQuote
+
+    @Test
+    void givenValidTokenAndQuote_whenViewFinalizedQuote_thenReturnsQuoteDetails() {
+        UUID quoteId = UUID.randomUUID();
+        QuoteToken token = QuoteToken.builder().build();
+        Quote quote = Quote.builder()
+                .id(quoteId)
+                .customer(customer)
+                .property(property)
+                .priceLow(200).priceHigh(300)
+                .finalPrice(250)
+                .status(Quote.Status.REVIEWED)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(quoteTokenService.validateToken(quoteId, "rawtoken")).thenReturn(token);
+        when(quoteRepository.findById(quoteId)).thenReturn(Optional.of(quote));
+
+        var result = quoteService.viewFinalizedQuote(quoteId, "rawtoken");
+
+        assertThat(result.id()).isEqualTo(quoteId);
+        assertThat(result.finalPrice()).isEqualTo(250);
+        assertThat(result.status()).isEqualTo(Quote.Status.REVIEWED);
+        // viewing does NOT consume the token
+        verify(quoteTokenService, never()).checkIfTokenConsumed(any());
+        verify(quoteTokenService, never()).consumeToken(any());
+    }
+
+    @Test
+    void givenInvalidToken_whenViewFinalizedQuote_thenThrowsInvalidQuoteTokenException() {
+        UUID quoteId = UUID.randomUUID();
+        when(quoteTokenService.validateToken(eq(quoteId), anyString()))
+                .thenThrow(InvalidQuoteTokenException.class);
+
+        assertThatThrownBy(() -> quoteService.viewFinalizedQuote(quoteId, "badtoken"))
+                .isInstanceOf(InvalidQuoteTokenException.class);
+    }
+
+    @Test
+    void givenValidTokenButQuoteNotFound_whenViewFinalizedQuote_thenThrowsQuoteNotFoundException() {
+        UUID quoteId = UUID.randomUUID();
+        when(quoteTokenService.validateToken(quoteId, "rawtoken")).thenReturn(QuoteToken.builder().build());
+        when(quoteRepository.findById(quoteId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> quoteService.viewFinalizedQuote(quoteId, "rawtoken"))
+                .isInstanceOf(QuoteNotFoundException.class);
+    }
+
+    // changeQuoteStatus
+
+    @Test
+    void givenPendingStatus_whenChangeQuoteStatus_thenThrowsInvalidQuoteStatusException() {
+        assertThatThrownBy(() -> quoteService.changeQuoteStatus(UUID.randomUUID(), "token", Quote.Status.PENDING))
+                .isInstanceOf(InvalidQuoteStatusException.class);
+        verifyNoInteractions(quoteTokenService, quoteRepository);
+    }
+
+    @Test
+    void givenValidTokenAndAccept_whenChangeQuoteStatus_thenSetsAcceptedAtAndUpdatesStatus() {
+        UUID quoteId = UUID.randomUUID();
+        QuoteToken token = QuoteToken.builder().build();
+        Quote quote = Quote.builder().id(quoteId).customer(customer).property(property).build();
+
+        when(quoteTokenService.validateToken(quoteId, "rawtoken")).thenReturn(token);
+        when(quoteRepository.findById(quoteId)).thenReturn(Optional.of(quote));
+
+        var result = quoteService.changeQuoteStatus(quoteId, "rawtoken", Quote.Status.ACCEPTED);
+
+        assertThat(quote.getStatus()).isEqualTo(Quote.Status.ACCEPTED);
+        assertThat(quote.getAcceptedAt()).isNotNull();
+        assertThat(result.status()).isEqualTo(Quote.Status.ACCEPTED);
+    }
+
+    @Test
+    void givenValidTokenAndDecline_whenChangeQuoteStatus_thenSetsDeclinedAtAndUpdatesStatus() {
+        UUID quoteId = UUID.randomUUID();
+        QuoteToken token = QuoteToken.builder().build();
+        Quote quote = Quote.builder().id(quoteId).customer(customer).property(property).build();
+
+        when(quoteTokenService.validateToken(quoteId, "rawtoken")).thenReturn(token);
+        when(quoteRepository.findById(quoteId)).thenReturn(Optional.of(quote));
+
+        var result = quoteService.changeQuoteStatus(quoteId, "rawtoken", Quote.Status.DECLINED);
+
+        assertThat(quote.getStatus()).isEqualTo(Quote.Status.DECLINED);
+        assertThat(quote.getDeclinedAt()).isNotNull();
+        assertThat(result.status()).isEqualTo(Quote.Status.DECLINED);
+    }
+
+    @Test
+    void givenAcceptedStatus_whenChangeQuoteStatus_thenDeclinedAtIsNull() {
+        UUID quoteId = UUID.randomUUID();
+        Quote quote = Quote.builder().id(quoteId).customer(customer).property(property)
+                .declinedAt(LocalDateTime.now().minusDays(1)).build();
+
+        when(quoteTokenService.validateToken(quoteId, "rawtoken")).thenReturn(QuoteToken.builder().build());
+        when(quoteRepository.findById(quoteId)).thenReturn(Optional.of(quote));
+
+        quoteService.changeQuoteStatus(quoteId, "rawtoken", Quote.Status.ACCEPTED);
+
+        assertThat(quote.getDeclinedAt()).isNull();
+    }
+
+    @Test
+    void givenDeclinedStatus_whenChangeQuoteStatus_thenAcceptedAtIsNull() {
+        UUID quoteId = UUID.randomUUID();
+        Quote quote = Quote.builder().id(quoteId).customer(customer).property(property)
+                .acceptedAt(LocalDateTime.now().minusDays(1)).build();
+
+        when(quoteTokenService.validateToken(quoteId, "rawtoken")).thenReturn(QuoteToken.builder().build());
+        when(quoteRepository.findById(quoteId)).thenReturn(Optional.of(quote));
+
+        quoteService.changeQuoteStatus(quoteId, "rawtoken", Quote.Status.DECLINED);
+
+        assertThat(quote.getAcceptedAt()).isNull();
+    }
+
+    @Test
+    void givenConsumedToken_whenChangeQuoteStatus_thenThrowsQuoteTokenConsumedException() {
+        UUID quoteId = UUID.randomUUID();
+        QuoteToken token = QuoteToken.builder().build();
+        when(quoteTokenService.validateToken(quoteId, "rawtoken")).thenReturn(token);
+        doThrow(QuoteTokenConsumedException.class).when(quoteTokenService).checkIfTokenConsumed(token);
+
+        assertThatThrownBy(() -> quoteService.changeQuoteStatus(quoteId, "rawtoken", Quote.Status.ACCEPTED))
+                .isInstanceOf(QuoteTokenConsumedException.class);
+    }
+
+    @Test
+    void givenExpiredToken_whenChangeQuoteStatus_thenThrowsQuoteTokenExpiredException() {
+        UUID quoteId = UUID.randomUUID();
+        when(quoteTokenService.validateToken(eq(quoteId), anyString()))
+                .thenThrow(QuoteTokenExpiredException.class);
+
+        assertThatThrownBy(() -> quoteService.changeQuoteStatus(quoteId, "rawtoken", Quote.Status.ACCEPTED))
+                .isInstanceOf(QuoteTokenExpiredException.class);
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -125,7 +126,12 @@ public class DashboardService {
         quoteRepository.save(quote);
 
         String quoteToken = quoteTokenService.generateToken(quote);
-        emailService.sendQuoteUrl(quote, quoteToken);
+        try {
+            emailService.sendQuoteUrl(quote, quoteToken);
+        } catch (IOException e) {
+            // Email failure should not roll back the quote finalization
+            throw new RuntimeException("Failed to send quote response email", e);
+        }
 
         return FinalizedQuoteResponse.builder()
                 .quoteId(quoteId)
