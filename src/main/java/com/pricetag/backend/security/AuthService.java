@@ -1,8 +1,8 @@
 package com.pricetag.backend.security;
 
 import com.pricetag.backend.dto.auth.AuthRequest;
-import com.pricetag.backend.dto.auth.AuthResponse;
 import com.pricetag.backend.dto.auth.RegistrationRequest;
+import com.pricetag.backend.dto.auth.UserResponse;
 import com.pricetag.backend.entity.Company;
 import com.pricetag.backend.entity.User;
 import com.pricetag.backend.exception.EmailAlreadyExistsException;
@@ -11,8 +11,11 @@ import com.pricetag.backend.repository.UserRepository;
 import com.pricetag.backend.util.SlugGenerator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +33,11 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final SlugGenerator slugGenerator;
 
+    @Value("${jwt.expiration}")
+    private long expirationMillis;
+
     @Transactional
-    public AuthResponse register(RegistrationRequest request) {
+    public ResponseCookie register(RegistrationRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistsException("User with email " + request.email() + " already exists");
         }
@@ -60,10 +66,10 @@ public class AuthService {
 
         String token = jwtService.generateToken(user);
 
-        return new AuthResponse(token);
+        return buildCookie(token);
     }
 
-    public AuthResponse login(AuthRequest request) {
+    public ResponseCookie login(AuthRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),
@@ -73,6 +79,35 @@ public class AuthService {
         User user = userRepository.findByEmail(request.email()).orElseThrow();
         String token = jwtService.generateToken(user);
 
-        return new AuthResponse(token);
+        return buildCookie(token);
+    }
+
+    public ResponseCookie logout() {
+        return ResponseCookie.from("auth_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+    }
+
+    public UserResponse buildUserResponse(User user) {
+        return UserResponse.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
+    }
+
+    private ResponseCookie buildCookie(String authToken) {
+        return ResponseCookie.from("auth_token", authToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(expirationMillis / 1000)
+                .sameSite("Strict")
+                .build();
     }
 }
