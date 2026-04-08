@@ -79,10 +79,10 @@ public class DashboardController extends BaseController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection) {
+            @RequestParam(defaultValue = "desc") String direction) {
 
         UUID companyId = extractCompanyId(request);
-        return ResponseEntity.ok(dashboardService.getCustomers(companyId, page, size, sortBy, sortDirection));
+        return ResponseEntity.ok(dashboardService.getCustomers(companyId, page, size, sortBy, direction));
     }
 
     @GetMapping("/dashboard/customers/{customerId}")
