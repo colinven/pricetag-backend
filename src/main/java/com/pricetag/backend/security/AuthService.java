@@ -1,6 +1,7 @@
 package com.pricetag.backend.security;
 
 import com.pricetag.backend.dto.auth.AuthRequest;
+import com.pricetag.backend.dto.auth.AuthResponse;
 import com.pricetag.backend.dto.auth.RegistrationRequest;
 import com.pricetag.backend.dto.auth.UserResponse;
 import com.pricetag.backend.entity.Company;
@@ -37,7 +38,7 @@ public class AuthService {
     private long expirationMillis;
 
     @Transactional
-    public ResponseCookie register(RegistrationRequest request) {
+    public AuthResponse register(RegistrationRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistsException("User with email " + request.email() + " already exists");
         }
@@ -66,10 +67,15 @@ public class AuthService {
 
         String token = jwtService.generateToken(user);
 
-        return buildCookie(token);
+        return new AuthResponse(buildCookie(token), new UserResponse(
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getRole()
+        ));
     }
 
-    public ResponseCookie login(AuthRequest request) {
+    public AuthResponse login(AuthRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),
@@ -79,7 +85,12 @@ public class AuthService {
         User user = userRepository.findByEmail(request.email()).orElseThrow();
         String token = jwtService.generateToken(user);
 
-        return buildCookie(token);
+        return new AuthResponse(buildCookie(token), new UserResponse(
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getRole()
+        ));
     }
 
     public ResponseCookie logout() {

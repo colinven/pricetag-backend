@@ -8,7 +8,6 @@ import com.pricetag.backend.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,19 +21,19 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthRequest authRequest) {
-        ResponseCookie cookie = authService.login(authRequest);
+    public ResponseEntity<UserResponse> login(@RequestBody @Valid AuthRequest authRequest) {
+        AuthResponse response = authService.login(authRequest);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(new AuthResponse("User logged in successfully"));
+                .header(HttpHeaders.SET_COOKIE, response.cookie().toString())
+                .body(response.user());
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody @Valid RegistrationRequest registrationRequest) {
-        ResponseCookie cookie = authService.register(registrationRequest);
+    public ResponseEntity<UserResponse> register(@RequestBody @Valid RegistrationRequest registrationRequest) {
+        AuthResponse response = authService.register(registrationRequest);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(new AuthResponse("User registered successfully"));
+                .header(HttpHeaders.SET_COOKIE, response.cookie().toString())
+                .body(response.user());
     }
 
     @PostMapping("/logout")

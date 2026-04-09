@@ -1,3 +1,8 @@
 package com.pricetag.backend.dto.auth;
 
-public record AuthResponse(String message) {}
+import org.springframework.http.ResponseCookie;
+
+public record AuthResponse(
+        ResponseCookie cookie,
+        UserResponse user
+) {}
