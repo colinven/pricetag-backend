@@ -9,6 +9,7 @@ import com.pricetag.backend.entity.User;
 import com.pricetag.backend.exception.EmailAlreadyExistsException;
 import com.pricetag.backend.repository.CompanyRepository;
 import com.pricetag.backend.repository.UserRepository;
+import com.pricetag.backend.util.Formatter;
 import com.pricetag.backend.util.SlugGenerator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -16,12 +17,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -47,15 +44,15 @@ public class AuthService {
         }
 
         Company company = Company.builder()
-                .name(request.companyName())
+                .name(Formatter.toTitleCase(request.companyName()))
                 .slug(slugGenerator.createSlug(request.companyName()))
                 .email(request.companyEmail())
                 .phone(request.companyPhone())
                 .build();
 
         User user = User.builder()
-                .firstName(request.firstName())
-                .lastName(request.lastName())
+                .firstName(Formatter.toTitleCase(request.firstName()))
+                .lastName(Formatter.toTitleCase(request.lastName()))
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .role(User.Role.OWNER)

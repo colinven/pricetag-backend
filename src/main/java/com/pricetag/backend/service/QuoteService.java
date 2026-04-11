@@ -9,7 +9,7 @@ import com.pricetag.backend.exception.*;
 import com.pricetag.backend.process.LookupProcess;
 import com.pricetag.backend.process.LookupResult;
 import com.pricetag.backend.repository.*;
-import com.pricetag.backend.util.AddressFormatter;
+import com.pricetag.backend.util.Formatter;
 import com.pricetag.backend.util.GeoUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +43,7 @@ public class QuoteService {
         CompanyPricing companyPricing = companyPricingRepository.findByCompanyId(company.getId()).orElseThrow(PricingNotConfiguredException::new);
         Customer customer = customerService.findOrCreate(request, company);
         AddressInfo addressInfo = new AddressInfo(request.street(), request.city(), request.state(), request.zip());
-        String formattedAddress = AddressFormatter.formatAddress(addressInfo);
+        String formattedAddress = Formatter.formatAddress(addressInfo);
 
 
         // Reject requests for properties out of company service area
@@ -151,7 +151,7 @@ public class QuoteService {
                 .orElseThrow(() -> new CompanyNotFoundException(slug));
         CompanyPricing companyPricing = companyPricingRepository.findByCompanyId(company.getId())
                 .orElseThrow(PricingNotConfiguredException::new);
-        String formattedAddress = AddressFormatter.formatAddress(request.addressInfo());
+        String formattedAddress = Formatter.formatAddress(request.addressInfo());
         Property  property = propertyRepository.findByFullAddress(formattedAddress)
                 .orElseGet(() -> propertyService.createProperty(
                         formattedAddress,
