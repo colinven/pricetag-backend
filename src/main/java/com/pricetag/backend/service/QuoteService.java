@@ -34,7 +34,6 @@ public class QuoteService {
     private final CompanyPricingRepository companyPricingRepository;
     private final PropertyRepository propertyRepository;
     private final QuoteRepository quoteRepository;
-    private final QuoteTokenRepository quoteTokenRepository;
 
     @Transactional
     public QuoteResponse getQuote(String slug, QuoteRequest request) {
