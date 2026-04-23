@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -47,11 +48,11 @@ public interface QuoteRepository extends JpaRepository<Quote, UUID> {
                 q.id, q.status, q.customer.firstName, q.customer.lastName,
                 q.property.fullAddress, q.priceLow, q.priceHigh, q.finalPrice, q.createdAt)
                 FROM Quote q
-                WHERE q.company.id = :companyId
+                WHERE q.company.id = :companyId AND q.status IN :statuses
             """,
             countQuery = "SELECT COUNT(q) FROM Quote q WHERE q.company.id = :companyId"
     )
-    Page<QuoteSummary> findByCompanyId(UUID companyId, Pageable pageable);
+    Page<QuoteSummary> findByCompanyIdAndStatusesIn(UUID companyId, Pageable pageable, Set<Quote.Status> statuses);
 
     @Query("""
             SELECT new com.pricetag.backend.dto.response.QuoteSummary(

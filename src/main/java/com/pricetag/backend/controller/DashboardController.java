@@ -3,6 +3,7 @@ package com.pricetag.backend.controller;
 import com.pricetag.backend.dto.request.FinalizeQuoteRequest;
 import com.pricetag.backend.dto.request.UpdateQuoteStatusRequest;
 import com.pricetag.backend.dto.response.*;
+import com.pricetag.backend.entity.Quote;
 import com.pricetag.backend.service.DashboardService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -11,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -38,10 +41,14 @@ public class DashboardController extends BaseController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue =  "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String direction) {
+            @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(defaultValue = "") Set<Quote.Status> statuses) {
 
         UUID companyId = extractCompanyId(request);
-        return ResponseEntity.ok(dashboardService.getQuotes(companyId, page, size, sortBy, direction));
+        Set<Quote.Status> effectiveStatuses = (statuses == null || statuses.isEmpty())
+                ? EnumSet.allOf(Quote.Status.class)
+                : statuses;
+        return ResponseEntity.ok(dashboardService.getQuotes(companyId, page, size, sortBy, direction, effectiveStatuses));
     }
 
     @GetMapping("/dashboard/quotes/{quoteId}")

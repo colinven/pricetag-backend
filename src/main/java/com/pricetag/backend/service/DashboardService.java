@@ -21,10 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.OptionalDouble;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -73,13 +70,13 @@ public class DashboardService {
         return new  QuotesResponse(pendingQuotes);
     }
 
-    public Page<QuoteSummary> getQuotes(UUID companyId, int page, int size, String sortBy, String sortDirection) {
+    public Page<QuoteSummary> getQuotes(UUID companyId, int page, int size, String sortBy, String sortDirection, Set<Quote.Status> statuses) {
         if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
         Sort sort = sortDirection.equals("desc")
                 ? Sort.by(mapSortBy(sortBy)).descending()
                 : Sort.by(mapSortBy(sortBy)).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        return quoteRepository.findByCompanyId(companyId, pageable);
+        return quoteRepository.findByCompanyIdAndStatusesIn(companyId, pageable, statuses);
     }
 
     private String mapSortBy(String sortBy) {

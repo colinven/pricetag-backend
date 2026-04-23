@@ -158,7 +158,6 @@ public class QuoteService {
                         request.addressInfo(),
                         request.data())
                 );
-
         Integer[] priceRange = pricingService.getPrice(companyPricing, request.data(), request.lastWash());
 
         Quote quoteEntity = Quote.builder()
