@@ -30,7 +30,7 @@ public class EmailService {
     //@Async
     public void sendLinkToQuoteEmail(Quote quote, String quoteToken) {
 
-        String quoteUrl = frontendDomain + "/quotes/" + quote.getId() + "?token=" + quoteToken;
+        String quoteUrl = frontendDomain + "/q/" + quote.getId() + "?token=" + quoteToken;
         System.out.println("Quote URL: " + quoteUrl);
 
 //        Customer customer = quote.getCustomer();
