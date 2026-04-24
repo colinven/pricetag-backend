@@ -50,7 +50,7 @@ public interface QuoteRepository extends JpaRepository<Quote, UUID> {
                 FROM Quote q
                 WHERE q.company.id = :companyId AND q.status IN :statuses
             """,
-            countQuery = "SELECT COUNT(q) FROM Quote q WHERE q.company.id = :companyId"
+            countQuery = "SELECT COUNT(q) FROM Quote q WHERE q.company.id = :companyId AND q.status IN :statuses"
     )
     Page<QuoteSummary> findByCompanyIdAndStatusesIn(UUID companyId, Pageable pageable, Set<Quote.Status> statuses);
 
