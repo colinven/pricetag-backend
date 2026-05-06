@@ -199,4 +199,16 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(status).body(error);
     }
+
+    @ExceptionHandler(value = Exception.class)
+    public ResponseEntity<APIError> handleUnhandledException(Exception ex) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        APIError error = APIError.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(status.value())
+                .error(status.getReasonPhrase())
+                .message("An unexpected error occurred")
+                .build();
+        return ResponseEntity.status(status).body(error);
+    }
 }
