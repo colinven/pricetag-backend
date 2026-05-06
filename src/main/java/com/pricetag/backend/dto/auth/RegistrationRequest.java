@@ -2,13 +2,14 @@ package com.pricetag.backend.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 public record RegistrationRequest(
 
         // company fields
         @NotBlank String companyName,
         @Email @NotBlank String companyEmail,
-        @NotBlank String companyPhone,
+        @NotBlank @Pattern(regexp = "^\\D*(?:\\d\\D*){10}$") String companyPhone,
 
         // user fields
         @NotBlank String firstName,

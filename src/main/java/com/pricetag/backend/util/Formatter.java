@@ -4,6 +4,7 @@ import com.pricetag.backend.dto.AddressInfo;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,7 +56,13 @@ public class Formatter {
 
     public static String toTitleCase(String input) {
         if (input == null || input.isEmpty()) return input;
-        Matcher matcher = Pattern.compile("\\b\\w").matcher(input.toLowerCase());
+        Matcher matcher = Pattern.compile("\\b\\w")
+                .matcher(input.toLowerCase());
         return matcher.replaceAll(match -> match.group().toUpperCase());
+    }
+
+    public static String formatPhoneNumber(String input) {
+        String nums = input.replaceAll("[^0-9]", "");
+        return nums.length() != 10 ? null : nums;
     }
 }

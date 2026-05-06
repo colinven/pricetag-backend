@@ -47,7 +47,7 @@ public class AuthService {
                 .name(Formatter.toTitleCase(request.companyName()))
                 .slug(slugGenerator.createSlug(request.companyName()))
                 .email(request.companyEmail())
-                .phone(request.companyPhone())
+                .phone(Formatter.formatPhoneNumber(request.companyPhone()))
                 .build();
 
         User user = User.builder()

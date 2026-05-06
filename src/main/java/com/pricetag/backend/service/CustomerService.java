@@ -4,6 +4,7 @@ import com.pricetag.backend.dto.request.QuoteRequest;
 import com.pricetag.backend.entity.Company;
 import com.pricetag.backend.entity.Customer;
 import com.pricetag.backend.repository.CustomerRepository;
+import com.pricetag.backend.util.Formatter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,7 @@ public class CustomerService {
         Customer customer = customerRepository.findByEmailAndCompanyId(request.email(), company.getId())
                 .orElse(new Customer());
         customer.setEmail(request.email());
-        customer.setPhone(request.phone());
+        customer.setPhone(Formatter.formatPhoneNumber(request.phone()));
         customer.setFirstName(request.firstName());
         customer.setLastName(request.lastName());
         customer.setCompany(company);

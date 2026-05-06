@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Pattern;
 public record QuoteRequest(
         @NotBlank String firstName,
         @NotBlank String lastName,
-        @NotBlank String phone,
+        @NotBlank @Pattern(regexp = "^\\D*(?:\\d\\D*){10}$") String phone,
         @Email @NotBlank String email,
         @NotBlank @Pattern(regexp = "^\\d+\\s+\\S+.*") String street,
         @NotBlank String city,
