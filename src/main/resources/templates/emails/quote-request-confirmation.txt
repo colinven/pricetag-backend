@@ -1,0 +1,19 @@
+${companyName}
+${companyPhone} · ${companyEmail}
+
+Hi ${firstName} —
+
+Thanks for requesting a house washing quote from ${companyName}.
+
+We've pulled all publicly available data on ${propertyAddress} and put
+together a rough estimate of $${priceLow} – $${priceHigh}. We will
+review the details and send a final quote shortly.
+
+You'll get another email from us when your final quote is ready —
+nothing else to do on your end for now.
+
+Thanks,
+The team at ${companyName}
+
+---
+Questions? Reply to this email or call ${companyPhone}.

@@ -1,0 +1,16 @@
+PriceTag
+Notification from your dashboard
+
+Hi ${ownerFirstName} —
+
+You have a new quote request from ${customerFirstName} ${customerLastName}
+for a house wash at ${propertyAddress}.
+
+Estimated range: $${priceLow} – $${priceHigh}.
+
+Review in dashboard: ${quoteDetailUrl}
+
+— PriceTag
+
+---
+You're receiving this because you have a PriceTag account.

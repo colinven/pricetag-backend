@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Quote request received</title>
+    <style>
+        body { margin: 0; padding: 0; background: #F4F2EF;
+               font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+               color: #1C1917; line-height: 1.55; }
+        .wrap { padding: 32px 16px; }
+        .card { max-width: 600px; margin: 0 auto; background: #FFFFFF;
+                border: 1px solid #E7E5E4; border-radius: 8px; padding: 36px 40px; }
+        .masthead { font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+                    font-size: 18px; font-weight: 600; color: #1C1917; }
+        .masthead-sub { color: #78716C; font-size: 13px; margin-top: 4px; }
+        .divider { border: none; border-top: 1px solid #E7E5E4; margin: 22px 0; }
+        p { margin: 0 0 16px 0; }
+        .reply-line { color: #78716C; font-size: 12px; margin-top: 28px; }
+        @media (prefers-color-scheme: dark) {
+            body { background: #1C1917; color: #F4F2EF; }
+            .card { background: #2A2825; border-color: #44403C; }
+            .masthead { color: #F4F2EF; }
+            .masthead-sub, .reply-line { color: #A8A29E; }
+            .divider { border-color: #44403C; }
+        }
+        @media (max-width: 600px) {
+            .card { padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="card">
+        <div class="masthead">${companyName}</div>
+        <div class="masthead-sub">${companyPhone} &middot; ${companyEmail}</div>
+        <hr class="divider"/>
+        <p>Hi ${firstName} &mdash;</p>
+        <p>Thanks for requesting a house washing quote from <strong>${companyName}</strong>.</p>
+        <p>We've pulled all publicly available data on <strong>${propertyAddress}</strong> and put together
+           a rough estimate of <strong>$${priceLow} &ndash; $${priceHigh}</strong>.
+           We will review the details and send a final quote shortly.</p>
+        <p>You'll get another email from us when your final quote is ready &mdash;
+           nothing else to do on your end for now.</p>
+        <p>Thanks,<br/>The team at ${companyName}</p>
+        <div class="reply-line">
+            Questions? Reply to this email or call ${companyPhone}.
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+${companyName}
+${companyPhone} · ${companyEmail}
+
+Hi ${firstName} —
+
+Thanks for accepting the house washing quote from ${companyName}.
+
+Below is a copy of your accepted quote for your records. ${companyName}
+will be in touch soon to schedule the work.
+
+------------------------------------
+Property:        ${propertyAddress}
+Final price:     $${finalPrice}
+Accepted:        ${acceptedAt}
+Square footage:  ${propertySqft}
+Stories:         ${propertyStories}
+Year built:      ${propertyYearBuilt}
+Property type:   ${propertyType}
+------------------------------------
+
+Thanks,
+The team at ${companyName}
+
+---
+Questions? Reply to this email or call ${companyPhone}.

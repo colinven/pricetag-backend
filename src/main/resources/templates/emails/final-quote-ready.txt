@@ -1,0 +1,18 @@
+${companyName}
+${companyPhone} · ${companyEmail}
+
+Hi ${firstName} —
+
+Your final house washing quote for ${propertyAddress} is ready. We've
+reviewed the property and set a price.
+
+Take a look when you have a minute — you can accept or decline directly
+from the link below. The quote is good for the next ${quoteExpiryDays} days.
+
+Review your quote: ${finalQuoteUrl}
+
+Thanks,
+The team at ${companyName}
+
+---
+Questions? Reply to this email or call ${companyPhone}.

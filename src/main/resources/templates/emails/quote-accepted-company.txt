@@ -1,0 +1,16 @@
+PriceTag
+Notification from your dashboard
+
+Hi ${ownerFirstName} —
+
+Good news — ${customerFirstName} ${customerLastName} accepted your quote
+for ${propertyAddress}.
+
+Final price: $${finalPrice}. Time to schedule the work.
+
+View in dashboard: ${quoteDetailUrl}
+
+— PriceTag
+
+---
+You're receiving this because you have a PriceTag account.

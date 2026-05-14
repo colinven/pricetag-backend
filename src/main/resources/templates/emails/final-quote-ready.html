@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Your final quote is ready</title>
+    <style>
+        body { margin: 0; padding: 0; background: #F4F2EF;
+               font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+               color: #1C1917; line-height: 1.55; }
+        .wrap { padding: 32px 16px; }
+        .card { max-width: 600px; margin: 0 auto; background: #FFFFFF;
+                border: 1px solid #E7E5E4; border-radius: 8px; padding: 36px 40px; }
+        .masthead { font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+                    font-size: 18px; font-weight: 600; color: #1C1917; }
+        .masthead-sub { color: #78716C; font-size: 13px; margin-top: 4px; }
+        .divider { border: none; border-top: 1px solid #E7E5E4; margin: 22px 0; }
+        p { margin: 0 0 16px 0; }
+        .cta-wrap { margin: 24px 0; }
+        .cta { display: inline-block; background: #2563EB; color: #FFFFFF !important;
+               text-decoration: none; padding: 12px 22px; border-radius: 6px;
+               font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+               font-weight: 600; font-size: 15px; }
+        .reply-line { color: #78716C; font-size: 12px; margin-top: 28px; }
+        @media (prefers-color-scheme: dark) {
+            body { background: #1C1917; color: #F4F2EF; }
+            .card { background: #2A2825; border-color: #44403C; }
+            .masthead { color: #F4F2EF; }
+            .masthead-sub, .reply-line { color: #A8A29E; }
+            .cta { background: #3B82F6; }
+            .divider { border-color: #44403C; }
+        }
+        @media (max-width: 600px) {
+            .card { padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="card">
+        <div class="masthead">${companyName}</div>
+        <div class="masthead-sub">${companyPhone} &middot; ${companyEmail}</div>
+        <hr class="divider"/>
+        <p>Hi ${firstName} &mdash;</p>
+        <p>Your final house washing quote for <strong>${propertyAddress}</strong> is ready.
+           We've reviewed the property and set a price.</p>
+        <p>Take a look when you have a minute &mdash; you can accept or decline
+           directly from the link below. The quote is good for the next
+           ${quoteExpiryDays} days.</p>
+        <p class="cta-wrap">
+            <a class="cta" href="${finalQuoteUrl}">Review your quote</a>
+        </p>
+        <p>Thanks,<br/>The team at ${companyName}</p>
+        <div class="reply-line">
+            Questions? Reply to this email or call ${companyPhone}.
+        </div>
+    </div>
+</div>
+</body>
+</html>
