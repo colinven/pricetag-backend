@@ -1,25 +1,30 @@
-package com.pricetag.backend.service;
+package com.pricetag.backend.email;
 
-import com.pricetag.backend.entity.Quote;
-import org.springframework.beans.factory.annotation.Value;
+import com.pricetag.backend.email.context.FinalQuoteReadyContext;
+import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
+@RequiredArgsConstructor
 public class EmailService {
 
-    @Value("${frontend.domain}")
-    private String frontendDomain;
+    private final EmailTemplateLoader loader;
+    private final EmailClient emailClient;
 
-    @Value("${email.sender}")
-    private String emailSender;
-
-    @Value("${keys.resendKey}")
-    private String resendKey;
-
-
-    //@Async
-    public void sendLinkToQuoteEmail(Quote quote, String quoteToken) {
-
+    @Async("emailExecutor")
+    public void sendFinalQuoteReadyEmail(FinalQuoteReadyContext ctx) {
+        Map<String, String> vars = ctx.toMap();
+        RenderedEmail renderedEmail = loader.render("final-quote-ready", vars);
+        emailClient.send(
+                ctx.companyName(),
+                ctx.customerEmail(),
+                ctx.companyEmail(),
+                "Your quote from " + ctx.companyName() + " is ready to view",
+                renderedEmail
+        );
     }
 
     public void sendNewQuoteRequestEmail() {

@@ -1,6 +1,7 @@
 package com.pricetag.backend.service;
 
 import com.pricetag.backend.dto.response.*;
+import com.pricetag.backend.email.EmailService;
 import com.pricetag.backend.entity.Customer;
 import com.pricetag.backend.entity.Property;
 import com.pricetag.backend.entity.Quote;

@@ -1,7 +1,9 @@
 package com.pricetag.backend.config;
 
 import com.pricetag.backend.repository.UserRepository;
+import com.resend.Resend;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -48,5 +50,10 @@ public class ApplicationConfig {
         return RestClient.builder()
                 .baseUrl("https://maps.googleapis.com")
                 .build();
+    }
+
+    @Bean
+    public Resend resendClient(@Value("${keys.resendKey}") String apiKey) {
+        return new Resend(apiKey);
     }
 }

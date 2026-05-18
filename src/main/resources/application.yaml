@@ -32,5 +32,5 @@ keys:
   resendKey: ${RESEND_API_KEY}
 frontend:
   domain: http://localhost:5173
-  email:
-    sender: ${RESEND_SENDER}
+email:
+  sender: ${RESEND_SENDER}
