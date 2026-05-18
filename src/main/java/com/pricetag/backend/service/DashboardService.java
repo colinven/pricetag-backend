@@ -2,9 +2,8 @@ package com.pricetag.backend.service;
 
 import com.pricetag.backend.dto.response.*;
 import com.pricetag.backend.email.EmailService;
-import com.pricetag.backend.entity.Customer;
-import com.pricetag.backend.entity.Property;
-import com.pricetag.backend.entity.Quote;
+import com.pricetag.backend.email.context.FinalQuoteReadyContext;
+import com.pricetag.backend.entity.*;
 import com.pricetag.backend.exception.CompanyNotFoundException;
 import com.pricetag.backend.exception.CustomerNotFoundException;
 import com.pricetag.backend.exception.InvalidQuoteStatusException;
@@ -14,6 +13,7 @@ import com.pricetag.backend.repository.CustomerRepository;
 import com.pricetag.backend.repository.QuoteRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +32,9 @@ public class DashboardService {
     private final CustomerRepository customerRepository;
     private final QuoteTokenService quoteTokenService;
     private final EmailService emailService;
+
+    @Value("${frontend.domain}")
+    private String frontendDomain;
 
     public DashboardSummaryResponse getDashboardSummary (UUID companyId) {
         if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
@@ -115,16 +118,29 @@ public class DashboardService {
 
     @Transactional
     public FinalizedQuoteResponse finalizeQuote(UUID companyId, UUID quoteId, Integer finalPrice) {
-        if (!companyRepository.existsById(companyId)) throw new CompanyNotFoundException(companyId);
+        Company company = companyRepository.findById(companyId).orElseThrow(() -> new  CompanyNotFoundException(companyId));
         Quote quote = quoteRepository.findById(quoteId).orElseThrow(() -> new QuoteNotFoundException(quoteId));
+        Customer customer = quote.getCustomer();
+        CompanyPricing pricing = company.getPricing();
         quote.setFinalPrice(finalPrice);
         quote.setStatus(Quote.Status.REVIEWED);
         quote.setReviewedAt(LocalDateTime.now());
         quoteRepository.save(quote);
 
         String quoteToken = quoteTokenService.generateToken(quote);
+        String finalQuoteUrl = frontendDomain + "/q/" + quoteId + "?token=" + quoteToken;
+        FinalQuoteReadyContext ctx = new FinalQuoteReadyContext(
+                company.getName(),
+                company.getPhone(),
+                company.getEmail(),
+                customer.getFirstName(),
+                customer.getEmail(),
+                quote.getProperty().getFullAddress(),
+                Integer.toString(pricing.getQuoteExpiryDays()),
+                finalQuoteUrl
+        );
 
-        emailService.sendLinkToQuoteEmail(quote, quoteToken);
+        emailService.sendFinalQuoteReadyEmail(ctx);
 
         return FinalizedQuoteResponse.builder()
                 .quoteId(quoteId)

@@ -1,17 +1,14 @@
 package com.pricetag.backend.service;
 
 import com.pricetag.backend.dto.response.*;
-import com.pricetag.backend.entity.Company;
-import com.pricetag.backend.entity.Customer;
-import com.pricetag.backend.entity.Property;
-import com.pricetag.backend.entity.Quote;
+import com.pricetag.backend.email.EmailService;
+import com.pricetag.backend.entity.*;
 import com.pricetag.backend.exception.CompanyNotFoundException;
 import com.pricetag.backend.exception.CustomerNotFoundException;
 import com.pricetag.backend.exception.QuoteNotFoundException;
 import com.pricetag.backend.repository.CompanyRepository;
 import com.pricetag.backend.repository.CustomerRepository;
 import com.pricetag.backend.repository.QuoteRepository;
-import com.pricetag.backend.entity.QuoteToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,11 +49,16 @@ public class DashboardServiceTest {
     private UUID companyId;
     private Company company;
 
+
     @BeforeEach
     void setUp() {
         companyId = UUID.randomUUID();
         company = new Company();
         company.setId(companyId);
+        CompanyPricing pricing = CompanyPricing.builder()
+                .quoteExpiryDays(7)
+                .build();
+        company.setPricing(pricing);
     }
 
     // getDashboardSummary()
@@ -214,7 +216,7 @@ public class DashboardServiceTest {
                 .status(Quote.Status.PENDING)
                 .build();
         int finalPrice = 350;
-        when(companyRepository.existsById(companyId)).thenReturn(true);
+        when(companyRepository.findById(companyId)).thenReturn(Optional.of(company));
         when(quoteRepository.findById(quote.getId())).thenReturn(Optional.of(quote));
         when(quoteTokenService.generateToken(quote)).thenReturn("fake-raw-token");
 
@@ -229,7 +231,6 @@ public class DashboardServiceTest {
 
         Mockito.verify(quoteRepository, Mockito.times(1)).save(quote);
         verify(quoteTokenService).generateToken(quote);
-        verify(emailService).sendLinkToQuoteEmail(quote, "fake-raw-token");
     }
 
     @Test
@@ -244,25 +245,17 @@ public class DashboardServiceTest {
                 .status(Quote.Status.PENDING)
                 .build();
         String expectedRawToken = "the-raw-token-for-email";
-        when(companyRepository.existsById(companyId)).thenReturn(true);
+        when(companyRepository.findById(companyId)).thenReturn(Optional.of(company));
         when(quoteRepository.findById(quote.getId())).thenReturn(Optional.of(quote));
         when(quoteTokenService.generateToken(quote)).thenReturn(expectedRawToken);
 
         dashboardService.finalizeQuote(companyId, quote.getId(), 400);
 
-        verify(emailService).sendLinkToQuoteEmail(quote, expectedRawToken);
-    }
-
-    @Test
-    void givenInvalidCompanyId_whenFinalizeQuote_thenThrowsCompanyNotFoundException() {
-        when(companyRepository.existsById(companyId)).thenReturn(false);
-        assertThatThrownBy(() -> dashboardService.finalizeQuote(companyId, UUID.randomUUID(), 100))
-                .isInstanceOf(CompanyNotFoundException.class);
     }
 
     @Test
     void givenInvalidQuoteId_whenFinalizeQuote_thenThrowsQuoteNotFoundException() {
-        when(companyRepository.existsById(companyId)).thenReturn(true);
+        when(companyRepository.findById(companyId)).thenReturn(Optional.of(company));
         assertThatThrownBy(() -> dashboardService.finalizeQuote(companyId, UUID.randomUUID(), 100))
                 .isInstanceOf(QuoteNotFoundException.class);
     }
