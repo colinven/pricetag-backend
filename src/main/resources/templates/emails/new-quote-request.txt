@@ -1,7 +1,7 @@
-PriceTag
+FlowBid
 Notification from your dashboard
 
-Hi ${ownerFirstName} —
+Hi —
 
 You have a new quote request from ${customerFirstName} ${customerLastName}
 for a house wash at ${propertyAddress}.
@@ -10,7 +10,7 @@ Estimated range: $${priceLow} – $${priceHigh}.
 
 Review in dashboard: ${quoteDetailUrl}
 
-— PriceTag
+— FlowBid
 
 ---
-You're receiving this because you have a PriceTag account.
+You're receiving this because you have a FlowBid account.

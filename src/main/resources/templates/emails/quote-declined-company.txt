@@ -1,7 +1,7 @@
-PriceTag
+FlowBid
 Notification from your dashboard
 
-Hi ${ownerFirstName} —
+Hi —
 
 ${customerFirstName} ${customerLastName} declined your quote for
 ${propertyAddress}.
@@ -10,7 +10,7 @@ They didn't move forward this time. The quote was set at $${finalPrice}.
 
 View in dashboard: ${quoteDetailUrl}
 
-— PriceTag
+— FlowBid
 
 ---
-You're receiving this because you have a PriceTag account.
+You're receiving this because you have a FlowBid account.

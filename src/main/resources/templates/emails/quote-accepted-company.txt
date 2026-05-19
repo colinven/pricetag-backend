@@ -1,4 +1,4 @@
-PriceTag
+FlowBid
 Notification from your dashboard
 
 Hi ${ownerFirstName} —
@@ -10,7 +10,7 @@ Final price: $${finalPrice}. Time to schedule the work.
 
 View in dashboard: ${quoteDetailUrl}
 
-— PriceTag
+— FlowBid
 
 ---
 You're receiving this because you have a PriceTag account.
