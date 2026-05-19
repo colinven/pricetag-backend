@@ -124,7 +124,7 @@ public class QuoteService {
     }
 
     @Transactional
-    public AmendedPriceResponse amendQuote(String slug, AmendedQuoteRequest request) {
+    public AmendedPriceResponse submitAmendedQuoteRequest(String slug, AmendedQuoteRequest request) {
 
         Customer customer = customerRepository.findById(request.customerId())
                 .orElseThrow(() -> new CustomerNotFoundException(request.customerId()));
@@ -140,19 +140,8 @@ public class QuoteService {
                         request.data())
                 );
         Integer[] priceRange = pricingService.getPrice(companyPricing, request.data(), request.lastWash());
-
-        Quote quoteEntity = Quote.builder()
-                .company(company)
-                .customer(customer)
-                .property(property)
-                .priceLow(priceRange[0])
-                .priceHigh(priceRange[1])
-                .status(Quote.Status.PENDING)
-                .expiresAt(LocalDateTime.now().plusDays(companyPricing.getQuoteExpiryDays()))
-                .build();
-
+        persistQuote(company, customer, property, priceRange[0], priceRange[1], companyPricing);
         propertyRepository.save(property);
-        quoteRepository.save(quoteEntity);
 
         return new AmendedPriceResponse(priceRange);
     }
