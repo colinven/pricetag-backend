@@ -49,7 +49,7 @@ public class QuoteService {
     }
 
     @Transactional
-    public QuoteResponse getQuote(String slug, QuoteRequest request) {
+    public QuoteResponse submitQuoteRequest(String slug, QuoteRequest request) {
 
         Company company = companyRepository.findBySlug(slug).orElseThrow(() -> new CompanyNotFoundException(slug));
         CompanyPricing companyPricing = companyPricingRepository.findByCompanyId(company.getId()).orElseThrow(PricingNotConfiguredException::new);
