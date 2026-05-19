@@ -35,6 +35,19 @@ public class QuoteService {
     private final PropertyRepository propertyRepository;
     private final QuoteRepository quoteRepository;
 
+    private void persistQuote(Company company, Customer customer, Property property, int priceLow, int priceHigh, CompanyPricing pricing) {
+        Quote quote = Quote.builder()
+                .company(company)
+                .customer(customer)
+                .property(property)
+                .priceLow(priceLow)
+                .priceHigh(priceHigh)
+                .status(Quote.Status.PENDING)
+                .expiresAt(LocalDateTime.now().plusDays(pricing.getQuoteExpiryDays()))
+                .build();
+        quoteRepository.save(quote);
+    }
+
     @Transactional
     public QuoteResponse getQuote(String slug, QuoteRequest request) {
 
@@ -43,7 +56,6 @@ public class QuoteService {
         Customer customer = customerService.findOrCreate(request, company);
         AddressInfo addressInfo = new AddressInfo(request.street(), request.city(), request.state(), request.zip());
         String formattedAddress = Formatter.formatAddress(addressInfo);
-
 
         // Reject requests for properties out of company service area
         if (company.hasServiceAreaConfigured() && !geoUtils.propertyIsInServiceArea(company, formattedAddress)) throw new OutOfServiceAreaException();
@@ -65,16 +77,7 @@ public class QuoteService {
 
             // If active quote exists for property but this customer doesn't have one yet, insert a new one
             if (existingQuote != null && !customerAlreadyHasActiveQuote) {
-                Quote quote = Quote.builder()
-                        .company(company)
-                        .customer(customer)
-                        .property(existingProperty)
-                        .priceLow(existingQuote.getPriceLow())
-                        .priceHigh(existingQuote.getPriceHigh())
-                        .status(Quote.Status.PENDING)
-                        .expiresAt(LocalDateTime.now().plusDays(companyPricing.getQuoteExpiryDays()))
-                        .build();
-                quoteRepository.save(quote);
+                persistQuote(company, customer, existingProperty, existingQuote.getPriceLow(), existingQuote.getPriceHigh(), companyPricing);
             }
             // Set price identical to existing active quote, otherwise re-price if quote is expired
             Integer[] price = existingQuote != null ?
@@ -83,16 +86,7 @@ public class QuoteService {
 
             // If no active quote was found for this property, insert a new one
             if (existingQuote == null) {
-                Quote quote = Quote.builder()
-                        .company(company)
-                        .customer(customer)
-                        .property(existingProperty)
-                        .priceLow(price[0])
-                        .priceHigh(price[1])
-                        .status(Quote.Status.PENDING)
-                        .expiresAt(LocalDateTime.now().plusDays(companyPricing.getQuoteExpiryDays()))
-                        .build();
-                quoteRepository.save(quote);
+                persistQuote(company, customer, existingProperty, price[0], price[1], companyPricing);
             }
 
             return QuoteResponse.builder()
@@ -117,20 +111,8 @@ public class QuoteService {
         if (!resultIsMissingData) {
             Property property = propertyRepository.findByFullAddress(formattedAddress)
                     .orElseGet(() -> propertyService.createProperty(formattedAddress, addressInfo, lookupResult.data()));
-
-            Quote quoteEntity = Quote.builder()
-                    .company(company)
-                    .customer(customer)
-                    .property(property)
-                    .priceLow(newPriceRange[0])
-                    .priceHigh(newPriceRange[1])
-                    .status(Quote.Status.PENDING)
-                    .expiresAt(LocalDateTime.now().plusDays(companyPricing.getQuoteExpiryDays()))
-                    .build();
-
+            persistQuote(company, customer, property, newPriceRange[0], newPriceRange[1], companyPricing);
             propertyRepository.save(property);
-            quoteRepository.save(quoteEntity);
-
         }
         return QuoteResponse.builder()
                 .lookupResult(lookupResult)
