@@ -4,12 +4,9 @@ import com.pricetag.backend.dto.request.CustomerQuoteDecision;
 import com.pricetag.backend.dto.response.*;
 import com.pricetag.backend.dto.request.AmendedQuoteRequest;
 import com.pricetag.backend.dto.request.QuoteRequest;
-import com.pricetag.backend.entity.Quote;
-import com.pricetag.backend.repository.CompanyRepository;
 import com.pricetag.backend.service.CompanyService;
 import com.pricetag.backend.service.QuoteService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +27,7 @@ public class QuoteController {
     public ResponseEntity<QuoteResponse> getQuote(
             @PathVariable String slug,
             @RequestBody @Valid QuoteRequest quoteRequest) {
-        QuoteResponse quoteResponse = quoteService.getQuote(slug, quoteRequest);
+        QuoteResponse quoteResponse = quoteService.submitQuoteRequest(slug, quoteRequest);
         return ResponseEntity.ok(quoteResponse);
     }
 
@@ -38,7 +35,7 @@ public class QuoteController {
     public ResponseEntity<AmendedPriceResponse> amendQuote(
             @PathVariable String slug,
             @RequestBody @Valid AmendedQuoteRequest amendedQuoteRequest) {
-        AmendedPriceResponse amendedPriceResponse = quoteService.amendQuote(slug, amendedQuoteRequest);
+        AmendedPriceResponse amendedPriceResponse = quoteService.submitAmendedQuoteRequest(slug, amendedQuoteRequest);
         return ResponseEntity.ok(amendedPriceResponse);
     }
 
