@@ -29,7 +29,7 @@ public class EmailService {
 
     public void sendNewQuoteRequestEmail() {
         // email sent to company when a new quote request comes in
-        // fires when quoteController.getQuote() returns
+        // fires when quoteController.submitQuoteRequest() returns
     }
 
     public void sendQuoteRequestReceivedEmail() {
